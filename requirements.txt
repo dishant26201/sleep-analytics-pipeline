@@ -1,3 +1,4 @@
 mne
 numpy
 pandas
+matplotlib

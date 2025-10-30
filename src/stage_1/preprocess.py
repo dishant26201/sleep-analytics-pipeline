@@ -68,7 +68,7 @@ def convert_to_epoch(raw: mne.io.BaseRaw, epoch_sec: float):
     samples_per_epoch = int(epoch_sec * sampling_frequency) # Calculate the number of samples per epoch
 
     data = raw.get_data() # Get EEG data as NumPy array
-    print(data.shape) # Shape(channels (2), samples_per_epoch (3000))
+    # print(data.shape) # Shape(channels (2), samples_per_epoch (3000))
 
     number_of_epochs = data.shape[1] // samples_per_epoch # Calculate number of full epochs (round down)
 
