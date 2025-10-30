@@ -258,4 +258,4 @@ def process_split(split_csv: str | Path, output_directory: str | Path, split: st
     print(f"Total epochs across all recordings: {total_epochs}")
     print(f"Epochs kept (labeled): {total_kept}")
     print(f"Path to NPZ directory: {npz_directory}")
-    print(f"Path to CSV directory: {meta_directory / f'{split}.csv'}\n")
+    print(f"Path to CSV directory: {meta_directory / f"{split}.csv"}\n")
