@@ -1,8 +1,6 @@
 # src/stage_0/utils.py
 
 from pathlib import Path
-from collections import defaultdict
-from typing import Dict, List, Tuple
 import pandas as pd
 import re
 

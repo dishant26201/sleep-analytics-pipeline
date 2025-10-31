@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 
 path = "data/preprocessed/npz/train/SC401N1.npz" # Path to a npz file
 data = np.load(path) # Load the data
-print(data.files) # View all the components in the npz file
 
 X = data['X'] # Access the EEG data for that recording  
 y = data['y'] # Access labels
@@ -16,14 +15,16 @@ epoch_id = 1500 #  Epoch to visualize (can be any)
 
 
 # View data accessed above
-print("X shape:", X.shape)
-print("Min:", X.min(), "Max:", X.max())
-print("y shape:", y.shape)
-print("Epoch start points shape:", epoch_start_point.shape)
-print("Epoch start points:", epoch_start_point[: 10])
-print("Channels:", channels)
-print("Sampling rate:", sfreq)
-print("Unique labels:", np.unique(y))
+print("\nAll items in npz file".ljust(30), ": ", data.files) # View all the components in the npz file
+print("X shape".ljust(30), ": ", X.shape)
+print("Min".ljust(30), ": ", X.min())
+print("Max".ljust(30), ": ", X.max())
+print("y shape".ljust(30), ": ", y.shape)
+print("Epoch start points shape".ljust(30), ": ", epoch_start_point.shape)
+print("Epoch start points".ljust(30), ": ", epoch_start_point[: 10])
+print("Channels".ljust(30), ": ", channels)
+print("Sampling rate".ljust(30), ": ", sfreq)
+print("Unique labels".ljust(30), ": ", np.unique(y))
 
 time = np.arange(X.shape[2]) / sfreq   # time in seconds (3000 / 100)
 

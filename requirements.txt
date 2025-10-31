@@ -2,3 +2,5 @@ mne
 numpy
 pandas
 matplotlib
+librosa
+scipy
