@@ -28,8 +28,8 @@ def build_master_inventory(raw_directory: str | Path, inventory_csv: str | Path)
     ]
 
     # Create empty CSV with only header
-    with open(inventory_csv, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=columns)
+    with open(inventory_csv, "w", newline = "") as f:
+        writer = csv.DictWriter(f, fieldnames = columns)
         writer.writeheader()
 
     files = sorted(raw_directory.glob("*")) # Sort files in data/raw alphabetically for consistent ordering
@@ -94,8 +94,8 @@ def build_master_inventory(raw_directory: str | Path, inventory_csv: str | Path)
                 print(f"Hypnogram probe failed for {file.name}: {e}")
 
     # Once all the files are processed, write the collected records/rows to inventory.csv 
-    with open(inventory_csv, "a", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=columns)
+    with open(inventory_csv, "a", newline = "") as f:
+        writer = csv.DictWriter(f, fieldnames = columns)
         for _, row in sorted(seen.items()):
             writer.writerow(row)
 

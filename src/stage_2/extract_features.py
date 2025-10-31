@@ -65,7 +65,8 @@ def compute_time_domain_features(epoch: np.ndarray, channel: str):
     kurtosis_val = float(kurtosis(epoch))
 
     # Measures how often the wave crosses zero per second
-    zero_crossing_rate = float(np.mean(lb.feature.zero_crossing_rate(epoch)))
+    zero_crossing_count = np.sum(lb.zero_crossings(epoch, pad = False))
+    zero_crossing_rate = zero_crossing_count / len(epoch)
     
     # Hjorth parameters
     activity = float(np.var(epoch))
@@ -144,7 +145,7 @@ path = "data/preprocessed/npz/train/SC401N1.npz" # Path to a npz file
 
 npz_desired = load_npz_data(path)
 
-epoch_id = 400 #  Epoch to apply PSD to (can be any)
+epoch_id = 929 #  Epoch to apply PSD to (can be any)
 
 X = npz_desired["X"]
 y = npz_desired["y"]
