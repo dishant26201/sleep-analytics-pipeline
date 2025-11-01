@@ -27,11 +27,11 @@ def probe_psg_header(psg_path: str | Path):
         raw = mne.io.read_raw_edf(psg_path, preload = False, verbose = "ERROR")  
 
         # Retrieve all channel names and convert to lowercase
-        ch_names = [ch.lower() for ch in raw.ch_names]
+        channel_names = [ch.lower() for ch in raw.ch_names]
 
         # Check if our two EEG channels are there by looking for different keywords as we're not sure what the exact channel names are
-        info["has_fpz_cz"] = any("fpz" in ch and "cz" in ch for ch in ch_names)
-        info["has_pz_oz"] = any("pz" in ch and "oz" in ch for ch in ch_names)
+        info["has_fpz_cz"] = any("fpz" in ch and "cz" in ch for ch in channel_names)
+        info["has_pz_oz"] = any("pz" in ch and "oz" in ch for ch in channel_names)
 
         info["sampling_rate"] = raw.info["sfreq"] # Sampling rate 
         

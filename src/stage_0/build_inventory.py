@@ -111,7 +111,7 @@ def split_inventory(inventory_csv: str | Path, split_directory: str | Path,
         
     inventory_csv = Path(inventory_csv) # Convert to path object
     split_directory = Path(split_directory) # Convert to path object
-    split_directory.mkdir(parents = True, exist_ok = True)  # Create the split_directory if missing
+    split_directory.mkdir(parents = True, exist_ok = True) # Create the split_directory if missing
 
     df = pd.read_csv(inventory_csv) # Load inventory.csv into a DataFrame
 

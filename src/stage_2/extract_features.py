@@ -2,11 +2,11 @@
 
 from pathlib import Path
 import numpy as np
-import pandas as pd
 import librosa as lb
 from scipy.stats import skew, kurtosis
 from scipy.signal import welch
 
+EPS = np.finfo(float).eps # Machine epsilon to prevent divide by zero or log(0) errors
 BANDS = {
     "Delta": (0.5, 4), # Dominant in N3
     "Theta": (4, 8), # Dominant in N1, REM
@@ -76,8 +76,8 @@ def compute_time_domain_features(epoch: np.ndarray, channel: str):
     temp1 = np.var(first_derivative)
     temp2 = np.var(second_derivative)
 
-    mobility = float(np.sqrt(temp1 / (activity)))   # Represents the mean frequency or the proportion of standard deviation
-    complexity = float(np.sqrt(temp2 / (temp1)) / (mobility)) # Measures change in frequency or irregularity of the wave
+    mobility = float(np.sqrt(temp1 / (activity + EPS)))   # Represents the mean frequency or the proportion of standard deviation
+    complexity = float(np.sqrt(temp2 / (temp1 + EPS)) / (mobility + EPS)) # Measures change in frequency or irregularity of the wave
 
     # Return all the time domain features as a dictionary and concatenate feature names with channel
     return {
@@ -114,12 +114,12 @@ def compute_freq_domain_features(epoch: np.ndarray, sfreq: float, channel: str):
         absolute_power = float(np.trapz(psd_band, freqs_band)) # Computes area under PSD curve of that band which gives total power in that band
         absolute_powers[band_name] = absolute_power # Add it to dictionary to store to compute features
 
-        relative_powers[band_name] = absolute_power / (total_power) # % of power in that band compared to the total power and store in dictionary
+        relative_powers[band_name] = absolute_power / (total_power + EPS) # % of power in that band compared to the total power and store in dictionary
 
 
     # Spectral entropy measures the complexity or irregularity of the power distribution across frequencies in the EEG
-    psd_normalized = psd / np.sum(psd) # Normalized PSD
-    spectral_entropy = -np.sum(psd_normalized * np.log(psd_normalized))
+    psd_normalized = psd / (np.sum(psd) + EPS) # Normalized PSD
+    spectral_entropy = -np.sum(psd_normalized * np.log(psd_normalized + EPS))
 
     # Return all the frequency domain features as a dictionary and concatenate feature names with channel
     return {
@@ -141,48 +141,48 @@ def compute_freq_domain_features(epoch: np.ndarray, sfreq: float, channel: str):
 
 # TEST
 
-path = "data/preprocessed/npz/train/SC401N1.npz" # Path to a npz file
+# path = "data/preprocessed/npz/train/SC401N1.npz" # Path to a npz file
 
-npz_desired = load_npz_data(path)
+# npz_desired = load_npz_data(path)
 
-epoch_id = 929 #  Epoch to apply PSD to (can be any)
+# epoch_id = 929 #  Epoch to apply PSD to (can be any)
 
-X = npz_desired["X"]
-y = npz_desired["y"]
-sfreq = npz_desired["sfreq"]
+# X = npz_desired["X"]
+# y = npz_desired["y"]
+# sfreq = npz_desired["sfreq"]
 
-c1 = "fpz"
-c2 = "pz"
-label = y[epoch_id]
+# c1 = "fpz"
+# c2 = "pz"
+# label = y[epoch_id]
 
-epoch_fpz = X[epoch_id, 0, :] # Epoch data for channel fpz_cz
-epoch_pz = X[epoch_id, 1, :] # Epoch data for channel pz_oz
+# epoch_fpz = X[epoch_id, 0, :] # Epoch data for channel fpz_cz
+# epoch_pz = X[epoch_id, 1, :] # Epoch data for channel pz_oz
 
-tdf_fpz = compute_time_domain_features(epoch_fpz, c1)
-fdf_fpz = compute_freq_domain_features(epoch_fpz, sfreq, c1)
+# tdf_fpz = compute_time_domain_features(epoch_fpz, c1)
+# fdf_fpz = compute_freq_domain_features(epoch_fpz, sfreq, c1)
 
-tdf_pz = compute_time_domain_features(epoch_pz, c2)
-fdf_pz = compute_freq_domain_features(epoch_pz, sfreq, c2)
+# tdf_pz = compute_time_domain_features(epoch_pz, c2)
+# fdf_pz = compute_freq_domain_features(epoch_pz, sfreq, c2)
 
-# Print all computed features for a given epoch 
-print(f"EPOCH FEATURE SUMMARY FOR EPOCH_ID: {epoch_id} WITH LABEL: {label} \n")
+# # Print all computed features for a given epoch 
+# print(f"EPOCH FEATURE SUMMARY FOR EPOCH_ID: {epoch_id} WITH LABEL: {label} \n")
 
-# Fpz-Cz prints
-print("Fpz-Cz Channel")
-print("Time Domain Features")
-for feature, value in tdf_fpz.items():
-    print(f"{feature.ljust(30)}: {value}")
+# # Fpz-Cz prints
+# print("Fpz-Cz Channel")
+# print("Time Domain Features")
+# for feature, value in tdf_fpz.items():
+#     print(f"{feature.ljust(30)}: {value}")
 
-print("\nFrequency Domain Features")
-for feature, value in fdf_fpz.items():
-    print(f"{feature.ljust(30)}: {value}")
+# print("\nFrequency Domain Features")
+# for feature, value in fdf_fpz.items():
+#     print(f"{feature.ljust(30)}: {value}")
 
-# Pz-Oz prints
-print("\nPz-Oz Channel")
-print("Time Domain Features")
-for feature, value in tdf_pz.items():
-    print(f"{feature.ljust(30)}: {value}")
+# # Pz-Oz prints
+# print("\nPz-Oz Channel")
+# print("Time Domain Features")
+# for feature, value in tdf_pz.items():
+#     print(f"{feature.ljust(30)}: {value}")
 
-print("\nFrequency Domain Features")
-for feature, value in fdf_pz.items():
-    print(f"{feature.ljust(30)}: {value}")
+# print("\nFrequency Domain Features")
+# for feature, value in fdf_pz.items():
+#     print(f"{feature.ljust(30)}: {value}")

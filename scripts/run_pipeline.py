@@ -3,6 +3,8 @@
 from pathlib import Path
 from src.stage_0.build_inventory import build_master_inventory, split_inventory
 from src.stage_1.preprocess import process_split
+from src.stage_2.build_feature_table import build_csv_for_split
+
 
 
 RAW = Path("data/raw")
@@ -16,7 +18,6 @@ SPLITS = INTERIM / "splits"
 if __name__ == "__main__":
 
     # Stage 0: Build inventory and split it into train, cv (cross validation), and test splits
-
     INTERIM.mkdir(parents = True, exist_ok = True) # Create "interim" directory
     SPLITS.mkdir(parents = True, exist_ok = True) # Create "interim/splits" directory
 
@@ -31,12 +32,18 @@ if __name__ == "__main__":
 
     
     # Stage 1: Preprocess and convert to epochs
-
     for split in ["train", "cv", "test"]:
         split_csv = SPLITS / f"{split}_split.csv"
         if split_csv.exists():
             process_split(split_csv, PREPROCESSED, split)
         else:
             print(f"Missing split CSV: {split}")
+
+
+    # Stage 2: Feature extraction
+    for split in ["train", "cv", "test"]:
+        print(f"\nStarting feature extraction for {split} split...")
+        build_csv_for_split(split)
+        
 
     print("Pipeline complete.\n")

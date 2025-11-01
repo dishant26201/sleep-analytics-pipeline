@@ -1,7 +1,6 @@
 # src/stage_1/preprocess.py
 
 from pathlib import Path
-from typing import List, Tuple, Optional
 import numpy as np
 import pandas as pd
 import mne
@@ -15,7 +14,6 @@ def to_bool(x: object):
 
 # Find Fpz-Cz and Pz-Oz channel names
 def pick_channels(raw: mne.io.BaseRaw):
-
     # Initialize empty variables for channel names which will be assigned the appropriate value in the loop
     ch1 = None
     ch2 = None
@@ -130,7 +128,7 @@ def labels_per_epoch(hyp_path: str | Path, number_of_epochs: int, epoch_sec: flo
 # Read an interim csv file from a specific split (train, cv or test) and produce:
 # One compressed .npz file (multiple NumPy arrays together) for each subject + night containing epochs, labels, metadata (these will be supplied to our ML model)
 # One csv file for the interim (csv file) with metadata for each epoch
-def process_split(split_csv: str | Path, output_directory: str | Path, split: str) -> None:
+def process_split(split_csv: str | Path, output_directory: str | Path, split: str):
     
     split_csv = Path(split_csv) # Convert to path object (this is the interim csv file corresponding to split)
     output_directory = Path(output_directory) # Convert to path object
@@ -144,7 +142,7 @@ def process_split(split_csv: str | Path, output_directory: str | Path, split: st
     meta_directory = output_directory / "meta"
     meta_directory.mkdir(parents = True, exist_ok = True)
 
-    metas: List[pd.DataFrame] = [] # Initialize an empty list to collect per-recording (PSG file) metadata
+    metas: list[pd.DataFrame] = [] # Initialize an empty list to collect per-recording (PSG file) metadata
 
     total_rows = 0 # Track number of rows (subject + night combo) an interim csv file
     total_epochs = 0 # Track number of epochs for a subject + night combo's recording
@@ -229,11 +227,11 @@ def process_split(split_csv: str | Path, output_directory: str | Path, split: st
             meta = pd.DataFrame({
                 "subject_id": subject_id, # subject_id of the person
                 "night": night, # night corresponding to a subject_id's recording
-                "epoch_id": np.arange(len(y)), # Index of each epoch
+                "epoch_id": np.arange(len(y)), # Index of each epoch which will act as ID
                 "split": split, # train, cv, or test
                 "sleep_stage_int_value": y.astype(int), # Numerical sleep stage label
                 "sleep_stage_str_value": labels_kept, # String sleep stage label
-                "epoch_start_point": starts,# 1D NumPy array with start times of each epoch in seconds
+                "epoch_start_point": starts, # 1D NumPy array with start times of each epoch in seconds
                 "number_of_samples": X.shape[-1], # Number of signal samples per epoch
                 "psg_path": str(psg_path), # Path to the PSG file
                 "hyp_path": str(hyp_path), # Path to the hypnogram file
@@ -250,7 +248,7 @@ def process_split(split_csv: str | Path, output_directory: str | Path, split: st
     if metas:
         out_csv = meta_directory / f"{split}.csv"
         # Combine all the recordings' metadata to one large DataFrame and then convert to CSV format
-        pd.concat(metas, ignore_index = True).to_csv(out_csv, index=False)
+        pd.concat(metas, ignore_index = True).to_csv(out_csv, index = False)
 
     # Summary
     print(f"Stage 1 ({split}) complete")
@@ -258,4 +256,4 @@ def process_split(split_csv: str | Path, output_directory: str | Path, split: st
     print(f"Total epochs across all recordings: {total_epochs}")
     print(f"Epochs kept (labeled): {total_kept}")
     print(f"Path to NPZ directory: {npz_directory}")
-    print(f"Path to CSV directory: {meta_directory / f"{split}.csv"}\n")
+    print(f"Path to CSV directory: {meta_directory} / {split}.csv\n")
