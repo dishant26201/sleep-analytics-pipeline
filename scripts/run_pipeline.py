@@ -6,7 +6,6 @@ from src.stage_1.preprocess import process_split
 from src.stage_2.build_feature_table import build_csv_for_split
 
 
-
 RAW = Path("data/raw")
 INTERIM = Path("data/interim")
 PREPROCESSED = Path("data/preprocessed")
@@ -42,7 +41,7 @@ if __name__ == "__main__":
 
     # Stage 2: Feature extraction
     for split in ["train", "cv", "test"]:
-        print(f"\nStarting feature extraction for {split} split...")
+        print(f"\nStarting feature extraction for {split} split")
         build_csv_for_split(split)
         
 
