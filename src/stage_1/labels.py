@@ -19,6 +19,7 @@ RAW_DROP = {
     "SLEEP STAGE ?",
 }
 
+
 # Convert raw label to the desired format (eg: N1)
 def convert_label(raw_label: str):
     label = raw_label.strip().upper()
@@ -28,4 +29,3 @@ def convert_label(raw_label: str):
         return RAW_TO_MAIN_MAP[label]
     else:
         return None
-    

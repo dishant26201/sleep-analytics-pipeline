@@ -1,8 +1,9 @@
 # src/stage_3/load_data.py
 
 from pathlib import Path
+
 import pandas as pd
-import numpy as np
+
 
 # Load and validate features for training model
 def generate_training_splits(feature_root: Path = Path("data/processed/features")):
@@ -24,7 +25,14 @@ def generate_training_splits(feature_root: Path = Path("data/processed/features"
 
     # Define target and metadata columns
     target_column = "sleep_stage_int_value"
-    meta_columns = ["subject_id", "night", "epoch_id", "split", "epoch_start_point", "sfreq"]
+    meta_columns = [
+        "subject_id",
+        "night",
+        "epoch_id",
+        "split",
+        "epoch_start_point",
+        "sfreq",
+    ]
 
     # Extract feature columns from train (exclude meta and target)
     feature_columns = []
@@ -32,7 +40,7 @@ def generate_training_splits(feature_root: Path = Path("data/processed/features"
     for column in df_train.columns:
         if column not in meta_columns and column != target_column:
             feature_columns.append(column)
-    
+
     # Separate features (X) and labels (y)
     X_train = df_train[feature_columns]
     y_train = df_train[target_column]
@@ -41,7 +49,7 @@ def generate_training_splits(feature_root: Path = Path("data/processed/features"
     X_test = df_test[feature_columns]
     y_test = df_test[target_column]
 
-    cv_meta = df_cv[meta_columns].reset_index(drop = True)
+    cv_meta = df_cv[meta_columns].reset_index(drop=True)
 
     # Prints
     print("Check Shapes")

@@ -10,6 +10,9 @@ __pycache__/
 .venv/
 env/
 
+# Config files
+pre-commit-config.yaml
+
 # OS/Editor files
 .DS_Store
 *.swp

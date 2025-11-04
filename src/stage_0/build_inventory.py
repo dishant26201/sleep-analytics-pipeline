@@ -1,18 +1,21 @@
 # src/stage_0/build_inventory.py
 
 import csv
-from pathlib import Path
-import pandas as pd
 import random
-from .utils import parse_ids, get_file_type, subset
-from .probe_psg import probe_psg_header
+from pathlib import Path
+
+import pandas as pd
+
 from .probe_hyp import probe_hyp_annotations
+from .probe_psg import probe_psg_header
+from .utils import get_file_type, parse_ids, subset
+
 
 # Scan raw edf files and build inventory.csv
 def build_master_inventory(raw_directory: str | Path, inventory_csv: str | Path):
 
-    raw_directory = Path(raw_directory) # Path for directory which stores raw edf files
-    inventory_csv = Path(inventory_csv) # Path to inventory.csv
+    raw_directory = Path(raw_directory)  # Path for directory which stores raw edf files
+    inventory_csv = Path(inventory_csv)  # Path to inventory.csv
 
     # inventory.csv contains: subject_id, night, psg_path, hyp_path, has_fpz_cz, has_pz_oz, sampling_rate, psg_duration_sec, labels
     columns = [
@@ -28,13 +31,17 @@ def build_master_inventory(raw_directory: str | Path, inventory_csv: str | Path)
     ]
 
     # Create empty CSV with only header
-    with open(inventory_csv, "w", newline = "") as f:
-        writer = csv.DictWriter(f, fieldnames = columns)
+    with open(inventory_csv, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=columns)
         writer.writeheader()
 
-    files = sorted(raw_directory.glob("*")) # Sort files in data/raw alphabetically for consistent ordering
+    files = sorted(
+        raw_directory.glob("*")
+    )  # Sort files in data/raw alphabetically for consistent ordering
 
-    seen = {} # Temporary in-memory record of which (subject, night) we've seen to avoid same subject in different splits
+    seen = (
+        {}
+    )  # Temporary in-memory record of which (subject, night) we've seen to avoid same subject in different splits
 
     # Iterate through all the files in data/raw
     for file in files:
@@ -48,7 +55,7 @@ def build_master_inventory(raw_directory: str | Path, inventory_csv: str | Path)
             print(f"Skipping invalid file: {file.name}")
             continue
 
-        key = subject_id + str(night) # Identifier for a subject + night combination
+        key = subject_id + str(night)  # Identifier for a subject + night combination
 
         # Initialize the row for this subject + night combination if seeing for the first time
         if key not in seen:
@@ -64,7 +71,7 @@ def build_master_inventory(raw_directory: str | Path, inventory_csv: str | Path)
                 "labels": "",
             }
 
-        row = seen[key] # Append row to seen record
+        row = seen[key]  # Append row to seen record
 
         # If this file is a PSG and PSG path is not yet recorded
         if file_type == "psg" and not row["psg_path"]:
@@ -93,9 +100,9 @@ def build_master_inventory(raw_directory: str | Path, inventory_csv: str | Path)
             except Exception as e:
                 print(f"Hypnogram probe failed for {file.name}: {e}")
 
-    # Once all the files are processed, write the collected records/rows to inventory.csv 
-    with open(inventory_csv, "a", newline = "") as f:
-        writer = csv.DictWriter(f, fieldnames = columns)
+    # Once all the files are processed, write the collected records/rows to inventory.csv
+    with open(inventory_csv, "a", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=columns)
         for _, row in sorted(seen.items()):
             writer.writerow(row)
 
@@ -106,14 +113,19 @@ def build_master_inventory(raw_directory: str | Path, inventory_csv: str | Path)
 # Split the inventory.csv into train, cv and test splits
 # With default ratios of train = 60%, cv = 20%, test = 20%
 # Saves three CSVs for each split (train, cv, test)
-def split_inventory(inventory_csv: str | Path, split_directory: str | Path,
-                    train_ratio: float = 0.6, cv_ratio: float = 0.2, seed: int = 42): 
-        
-    inventory_csv = Path(inventory_csv) # Convert to path object
-    split_directory = Path(split_directory) # Convert to path object
-    split_directory.mkdir(parents = True, exist_ok = True) # Create the split_directory if missing
+def split_inventory(
+    inventory_csv: str | Path,
+    split_directory: str | Path,
+    train_ratio: float = 0.6,
+    cv_ratio: float = 0.2,
+    seed: int = 42,
+):
 
-    df = pd.read_csv(inventory_csv) # Load inventory.csv into a DataFrame
+    inventory_csv = Path(inventory_csv)  # Convert to path object
+    split_directory = Path(split_directory)  # Convert to path object
+    split_directory.mkdir(parents=True, exist_ok=True)  # Create the split_directory if missing
+
+    df = pd.read_csv(inventory_csv)  # Load inventory.csv into a DataFrame
 
     # Get the list of unique subjects since almost every subject has recordings for 2 nights
     subjects = sorted(df["subject_id"].unique())
@@ -128,19 +140,19 @@ def split_inventory(inventory_csv: str | Path, split_directory: str | Path,
     number_of_cv = int(cv_ratio * number_of_total)
 
     # Split subjects into train, cv, and test groups without the same subject being in multiple groups
-    train_subjects = subjects[: number_of_train]
+    train_subjects = subjects[:number_of_train]
     cv_subjects = subjects[number_of_train : number_of_train + number_of_cv]
     test_subjects = subjects[number_of_train + number_of_cv :]
 
     # Create DataFrame subset for each split
     df_train = subset(df, train_subjects)
-    df_cv = subset(df, cv_subjects) 
+    df_cv = subset(df, cv_subjects)
     df_test = subset(df, test_subjects)
 
     # Save to interim folder and create new split directory
-    df_train.to_csv(split_directory / "train_split.csv", index = False)
-    df_cv.to_csv(split_directory / "cv_split.csv", index = False)
-    df_test.to_csv(split_directory / "test_split.csv", index = False)
+    df_train.to_csv(split_directory / "train_split.csv", index=False)
+    df_cv.to_csv(split_directory / "cv_split.csv", index=False)
+    df_test.to_csv(split_directory / "test_split.csv", index=False)
 
     # Summary
     print("Inventory split complete")
