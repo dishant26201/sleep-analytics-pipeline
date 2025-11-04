@@ -41,13 +41,15 @@ def generate_training_splits(feature_root: Path = Path("data/processed/features"
     X_test = df_test[feature_columns]
     y_test = df_test[target_column]
 
+    cv_meta = df_cv[meta_columns].reset_index(drop = True)
+
     # Prints
     print("Check Shapes")
     print(f"X_train: {X_train.shape}, y_train: {y_train.shape}")
     print(f"X_cv: {X_cv.shape}, y_cv: {y_cv.shape}")
     print(f"X_test: {X_test.shape}, y_test: {y_test.shape}\n")
 
-    return X_train, y_train, X_cv, y_cv, X_test, y_test, feature_columns
+    return X_train, y_train, X_cv, y_cv, X_test, y_test, feature_columns, cv_meta
 
 
 # if __name__ == "__main__":
