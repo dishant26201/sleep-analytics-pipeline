@@ -41,6 +41,7 @@ rf_parameters = {
     "random_state": 42,
 }
 
+# HELLOOOO
 rf_model = RandomForestClassifier(**rf_parameters)
 rf_model.fit(X_train, y_train)
 
