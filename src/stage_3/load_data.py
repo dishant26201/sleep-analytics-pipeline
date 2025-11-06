@@ -1,9 +1,10 @@
 # src/stage_3/load_data.py
 
 from pathlib import Path
-
+import numpy as np
 import pandas as pd
 
+EPS = np.finfo(float).eps  # Machine epsilon to prevent divide by zero or log(0) error
 
 # Load and validate features for training model
 def generate_training_splits(feature_root: Path = Path("data/processed/features")):
@@ -22,6 +23,29 @@ def generate_training_splits(feature_root: Path = Path("data/processed/features"
     print(f"Train shape: {df_train.shape}")
     print(f"CV shape: {df_cv.shape}")
     print(f"Test shape: {df_test.shape}\n")
+
+    for ch in ["fpz", "pz"]:
+
+        # Distinguishing Wake from N1
+        df_train[f"log_alpha_theta_{ch}"] = np.log((df_train[f"relative_alpha_{ch}"] + EPS) / (df_train[f"relative_theta_{ch}"] + EPS))
+        df_cv[f"log_alpha_theta_{ch}"] = np.log((df_cv[f"relative_alpha_{ch}"] + EPS) / (df_cv[f"relative_theta_{ch}"] + EPS))
+        df_test[f"log_alpha_theta_{ch}"] = np.log((df_test[f"relative_alpha_{ch}"] + EPS) / (df_test[f"relative_theta_{ch}"] + EPS))
+
+        # Distinguishing N1 from N2
+        df_train[f"log_sigma_theta_{ch}"] = np.log((df_train[f"relative_sigma_{ch}"] + EPS) / (df_train[f"relative_theta_{ch}"] + EPS))
+        df_cv[f"log_sigma_theta_{ch}"] = np.log((df_cv[f"relative_sigma_{ch}"] + EPS) / (df_cv[f"relative_theta_{ch}"] + EPS))
+        df_test[f"log_sigma_theta_{ch}"] = np.log((df_test[f"relative_sigma_{ch}"] + EPS) / (df_test[f"relative_theta_{ch}"] + EPS))
+
+        # Distinguishing N1 from REM
+        df_train[f"log_beta_theta_{ch}"] = np.log((df_train[f"relative_beta_{ch}"] + EPS) / (df_train[f"relative_theta_{ch}"] + EPS))
+        df_cv[f"log_beta_theta_{ch}"] = np.log((df_cv[f"relative_beta_{ch}"] + EPS) / (df_cv[f"relative_theta_{ch}"] + EPS))
+        df_test[f"log_beta_theta_{ch}"] = np.log((df_test[f"relative_beta_{ch}"] + EPS) / (df_test[f"relative_theta_{ch}"] + EPS))
+
+        # Distinguishing REM from N2
+        df_train[f"log_beta_sigma_{ch}"] = np.log((df_train[f"relative_beta_{ch}"] + EPS) / (df_train[f"relative_sigma_{ch}"] + EPS))
+        df_cv[f"log_beta_sigma_{ch}"] = np.log((df_cv[f"relative_beta_{ch}"] + EPS) / (df_cv[f"relative_sigma_{ch}"] + EPS))
+        df_test[f"log_beta_sigma_{ch}"] = np.log((df_test[f"relative_beta_{ch}"] + EPS) / (df_test[f"relative_sigma_{ch}"] + EPS))
+
 
     # Define target and metadata columns
     target_column = "sleep_stage_int_value"

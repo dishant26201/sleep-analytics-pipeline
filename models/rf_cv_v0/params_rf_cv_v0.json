@@ -1,1 +1,12 @@
-{"n_estimators": 100, "min_samples_leaf": 1, "max_depth": null, "class_weight": "balanced", "min_samples_split": 2, "max_features": "sqrt", "bootstrap": true, "n_jobs": -1, "random_state": 42}
+{
+  "Notes": "Baseline",
+  "n_estimators": 100,
+  "min_samples_leaf": 1,
+  "max_depth": "None",
+  "class_weight": "balanced",
+  "min_samples_split": 2,
+  "max_features": "sqrt",
+  "bootstrap": "True",
+  "n_jobs": -1,
+  "random_state": 42
+}

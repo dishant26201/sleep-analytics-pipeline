@@ -2,12 +2,15 @@
 
 import json
 from pathlib import Path
-
 import matplotlib.pyplot as plt
 import pandas as pd
 from imblearn.over_sampling import SMOTE
+from imblearn.over_sampling import BorderlineSMOTE
+from imblearn.under_sampling import RandomUnderSampler
+import numpy as np
 from joblib import dump
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import RandomizedSearchCV
 from sklearn.metrics import (
     ConfusionMatrixDisplay,
     accuracy_score,
@@ -23,27 +26,89 @@ from sklearn.metrics import (
 
 from .load_data import generate_training_splits
 
-MODEL_VERSION = "rf_cv_v0"
+
+MODEL_VERSION = "rf_cv_v2.65"
 OUTPUT_DIRECTORY = Path("models") / MODEL_VERSION
-OUTPUT_DIRECTORY.mkdir(parents=True, exist_ok=True)
+OUTPUT_DIRECTORY.mkdir(parents = True, exist_ok = True)
+# WAKE_LABEL = 0
+# N1_LABEL = 1
 
 X_train, y_train, X_cv, y_cv, X_test, y_test, feature_columns, cv_meta = generate_training_splits()
 
+# count = np.bincount(y_train)
+# wake_count = int(0.60 * count[WAKE_LABEL])
+
+# undersampler = RandomUnderSampler(sampling_strategy = {WAKE_LABEL: wake_count}, random_state = 42)
+# X_undersampled, y_undersampled = undersampler.fit_resample(X_train, y_train)
+
+# n1_count = int(max(np.bincount(y_undersampled)[N1_LABEL], wake_count * 0.60))
+
+# oversampler = BorderlineSMOTE(
+#     sampling_strategy = {N1_LABEL: n1_count},
+#     k_neighbors = 5,
+#     random_state = 42,
+# )
+# X_train_resampled, y_train_resampled = oversampler.fit_resample(X_undersampled, y_undersampled)
+
+
+smote = SMOTE(random_state = 42, k_neighbors = 3)
+X_train_resampled, y_train_resampled = smote.fit_resample(X_train, y_train)
+
+print("Before SMOTE:", np.bincount(y_train))
+print("After SMOTE:", np.bincount(y_train_resampled))
+
+
+# rf_base = RandomForestClassifier(
+#     n_jobs = -1,
+#     random_state = 42,
+# )
+
+# parameter_distributions = {
+    # "n_estimators": [300, 400, 500, 600, 700, 800, 900, 1000],
+    # "max_depth": [None, 10, 12, 16, 20, 24, 28, 30],
+    # "min_samples_leaf": [1, 2, 4, 8],
+    # "min_samples_split": [2, 4, 6, 10],
+    # "max_features": ["sqrt", "log2"],
+    # "class_weight": ["balanced", None],
+    # "bootstrap": [True, False],
+    # "criterion": ["gini", "entropy"],
+# }
+
+# rf_search = RandomizedSearchCV(
+#     estimator = rf_base,
+#     param_distributions = parameter_distributions,
+#     n_iter = 25,
+#     scoring = "f1_macro",
+#     cv = 3,
+#     verbose = 3,
+#     random_state = 42,
+#     n_jobs = -1,
+# )
+
+# rf_search.fit(X_train_resampled, y_train_resampled)
+
+# best_params = rf_search.best_params_
+
+# rf_model = RandomForestClassifier(**best_params, n_jobs = -1, random_state = 42)
+# rf_model.fit(X_train_resampled, y_train_resampled)
+
+
 rf_parameters = {
-    "n_estimators": 100,
-    "min_samples_leaf": 1,
+    "bootstrap": False,
+    "class_weight": None,
+    "criterion": "gini",
     "max_depth": None,
-    "class_weight": "balanced",
-    "min_samples_split": 2,
-    "max_features": "sqrt",
-    "bootstrap": True,
+    "max_features": "log2",
+    "min_samples_leaf": 1,
     "n_jobs": -1,
-    "random_state": 42,
+    "min_samples_split": 2,
+    "n_estimators": 500,
+    "random_state": 42
 }
 
-# HELLOOOO
 rf_model = RandomForestClassifier(**rf_parameters)
-rf_model.fit(X_train, y_train)
+
+rf_model.fit(X_train_resampled, y_train_resampled)
 
 dump(rf_model, OUTPUT_DIRECTORY / f"{MODEL_VERSION}.joblib")
 
@@ -98,7 +163,7 @@ plt.legend()
 plt.tight_layout()
 
 plt.savefig(OUTPUT_DIRECTORY / f"roc_curves_{MODEL_VERSION}.png")
-plt.show()
+# plt.show()
 
 
 fig, ax = plt.subplots(figsize=(10, 8))
@@ -111,10 +176,16 @@ ax.set_title(f"Confusion Matrix: {MODEL_VERSION}")
 plt.tight_layout()
 
 plt.savefig(OUTPUT_DIRECTORY / f"confusion_matrix_{MODEL_VERSION}.png")
-plt.show()
+# plt.show()
+
+rf_parameters_payload = {
+    "Notes": "Added more data to train, balanced_subsample class weight, no SMOTE, everything else like v1",
+    "rf_parameters": rf_parameters,
+
+}
 
 with open(OUTPUT_DIRECTORY / f"params_{MODEL_VERSION}.json", "w") as f:
-    json.dump(rf_parameters, f)
+    json.dump(rf_parameters_payload, f, indent = 2, sort_keys = True)
 
 
 metrics_payload = {
@@ -125,7 +196,7 @@ metrics_payload = {
 }
 
 with open(OUTPUT_DIRECTORY / f"metrics_{MODEL_VERSION}.json", "w") as f:
-    json.dump(metrics_payload, f)
+    json.dump(metrics_payload, f, indent = 2, sort_keys = True)
 
 pred_df = pd.DataFrame(
     {
