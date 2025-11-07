@@ -46,6 +46,9 @@ def generate_training_splits(feature_root: Path = Path("data/processed/features"
         df_cv[f"log_beta_sigma_{ch}"] = np.log((df_cv[f"relative_beta_{ch}"] + EPS) / (df_cv[f"relative_sigma_{ch}"] + EPS))
         df_test[f"log_beta_sigma_{ch}"] = np.log((df_test[f"relative_beta_{ch}"] + EPS) / (df_test[f"relative_sigma_{ch}"] + EPS))
 
+        df_train[f"log_delta_theta_{ch}"] = np.log((df_train[f"relative_delta_{ch}"] + EPS) / (df_train[f"relative_theta_{ch}"] + EPS))
+        df_cv[f"log_delta_theta_{ch}"] = np.log((df_cv[f"relative_delta_{ch}"] + EPS) / (df_cv[f"relative_theta_{ch}"] + EPS))
+        df_test[f"log_delta_theta_{ch}"] = np.log((df_test[f"relative_delta_{ch}"] + EPS) / (df_test[f"relative_theta_{ch}"] + EPS))
 
     # Define target and metadata columns
     target_column = "sleep_stage_int_value"

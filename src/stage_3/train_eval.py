@@ -6,11 +6,9 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from imblearn.over_sampling import SMOTE
 from imblearn.over_sampling import BorderlineSMOTE
-from imblearn.under_sampling import RandomUnderSampler
 import numpy as np
 from joblib import dump
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import RandomizedSearchCV
 from sklearn.metrics import (
     ConfusionMatrixDisplay,
     accuracy_score,
@@ -27,35 +25,38 @@ from sklearn.metrics import (
 from .load_data import generate_training_splits
 
 
-MODEL_VERSION = "rf_cv_v2.65"
+MODEL_VERSION = "rf_model_cv_v7"
 OUTPUT_DIRECTORY = Path("models") / MODEL_VERSION
 OUTPUT_DIRECTORY.mkdir(parents = True, exist_ok = True)
-# WAKE_LABEL = 0
-# N1_LABEL = 1
+WAKE_LABEL = 0
+N1_LABEL = 1
+REM_LABEL = 4
 
 X_train, y_train, X_cv, y_cv, X_test, y_test, feature_columns, cv_meta = generate_training_splits()
 
-# count = np.bincount(y_train)
-# wake_count = int(0.60 * count[WAKE_LABEL])
+count = np.bincount(y_train)
+target = int(0.60 * count[WAKE_LABEL])
+n1_count = count[1]
+rem_count = count[4]
 
-# undersampler = RandomUnderSampler(sampling_strategy = {WAKE_LABEL: wake_count}, random_state = 42)
-# X_undersampled, y_undersampled = undersampler.fit_resample(X_train, y_train)
 
-# n1_count = int(max(np.bincount(y_undersampled)[N1_LABEL], wake_count * 0.60))
+sampling_strategy = {}
+for label in [1]:
+    sampling_strategy[label] = target
 
-# oversampler = BorderlineSMOTE(
-#     sampling_strategy = {N1_LABEL: n1_count},
-#     k_neighbors = 5,
+
+# smote = SMOTE(
+#     sampling_strategy = sampling_strategy,
 #     random_state = 42,
+#     k_neighbors = 3
 # )
-# X_train_resampled, y_train_resampled = oversampler.fit_resample(X_undersampled, y_undersampled)
 
-
-smote = SMOTE(random_state = 42, k_neighbors = 3)
+smote = BorderlineSMOTE(
+    sampling_strategy = sampling_strategy,
+    k_neighbors = 3,
+    random_state = 42,
+)
 X_train_resampled, y_train_resampled = smote.fit_resample(X_train, y_train)
-
-print("Before SMOTE:", np.bincount(y_train))
-print("After SMOTE:", np.bincount(y_train_resampled))
 
 
 # rf_base = RandomForestClassifier(
@@ -64,14 +65,14 @@ print("After SMOTE:", np.bincount(y_train_resampled))
 # )
 
 # parameter_distributions = {
-    # "n_estimators": [300, 400, 500, 600, 700, 800, 900, 1000],
-    # "max_depth": [None, 10, 12, 16, 20, 24, 28, 30],
-    # "min_samples_leaf": [1, 2, 4, 8],
-    # "min_samples_split": [2, 4, 6, 10],
-    # "max_features": ["sqrt", "log2"],
-    # "class_weight": ["balanced", None],
-    # "bootstrap": [True, False],
-    # "criterion": ["gini", "entropy"],
+#     "n_estimators": [300, 400, 500, 600, 700, 800, 900, 1000],
+#     "max_depth": [None, 10, 12, 16, 20, 24, 28, 30],
+#     "min_samples_leaf": [1, 2, 4, 8],
+#     "min_samples_split": [2, 4, 6, 10],
+#     "max_features": ["sqrt", "log2"],
+#     "class_weight": ["balanced", None],
+#     "bootstrap": [True, False],
+#     "criterion": ["gini", "entropy"],
 # }
 
 # rf_search = RandomizedSearchCV(
@@ -95,7 +96,7 @@ print("After SMOTE:", np.bincount(y_train_resampled))
 
 rf_parameters = {
     "bootstrap": False,
-    "class_weight": None,
+    "class_weight": "balanced_subsample",
     "criterion": "gini",
     "max_depth": None,
     "max_features": "log2",
@@ -163,7 +164,6 @@ plt.legend()
 plt.tight_layout()
 
 plt.savefig(OUTPUT_DIRECTORY / f"roc_curves_{MODEL_VERSION}.png")
-# plt.show()
 
 
 fig, ax = plt.subplots(figsize=(10, 8))
@@ -176,10 +176,9 @@ ax.set_title(f"Confusion Matrix: {MODEL_VERSION}")
 plt.tight_layout()
 
 plt.savefig(OUTPUT_DIRECTORY / f"confusion_matrix_{MODEL_VERSION}.png")
-# plt.show()
 
 rf_parameters_payload = {
-    "Notes": "Added more data to train, balanced_subsample class weight, no SMOTE, everything else like v1",
+    "Notes": "v7: v3 SMOTE applied to N1, but no SMOTE to REM. v6 Hyperparameters applied.",
     "rf_parameters": rf_parameters,
 
 }
