@@ -167,6 +167,17 @@ def compute_freq_domain_features(epoch: np.ndarray, sfreq: float, channel: str):
         f"relative_alpha_{channel}": relative_powers["Alpha"],
         f"relative_sigma_{channel}": relative_powers["Sigma"],
         f"relative_beta_{channel}": relative_powers["Beta"],
+        f"log_alpha_theta_{channel}": np.log((relative_powers["Alpha"] + EPS) / (relative_powers["Theta"] + EPS)), # Distinguishing Wake from N1
+        f"log_sigma_theta_{channel}": np.log((relative_powers["Sigma"] + EPS) / (relative_powers["Theta"] + EPS)), # Distinguishing N1 from N2
+        f"log_beta_theta_{channel}": np.log((relative_powers["Beta"] + EPS) / (relative_powers["Theta"] + EPS)), # Distinguishing N1 from REM
+        f"log_beta_sigma_{channel}": np.log((relative_powers["Beta"] + EPS) / (relative_powers["Sigma"] + EPS)), # Distinguishing REM from N2
+        f"log_delta_theta_{channel}": np.log((relative_powers["Delta"] + EPS) / (relative_powers["Theta"] + EPS)) #
+
+
+
+
+
+
     }
 
 

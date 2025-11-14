@@ -1,4 +1,4 @@
-# src/stage_3/train_eval.py
+# src/stage_3/train_eval_rf.py
 
 import json
 from pathlib import Path
@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from imblearn.over_sampling import SMOTE
 from imblearn.over_sampling import BorderlineSMOTE
+from imblearn.under_sampling import RandomUnderSampler
+from sklearn.preprocessing import StandardScaler
 import numpy as np
 from joblib import dump
 from sklearn.ensemble import RandomForestClassifier
@@ -21,28 +23,67 @@ from sklearn.metrics import (
     roc_auc_score,
     roc_curve,
 )
-
 from .load_data import generate_training_splits
 
 
-MODEL_VERSION = "rf_model_cv_v7"
+MODEL_VERSION = "rf_cv_v6"
 OUTPUT_DIRECTORY = Path("models") / MODEL_VERSION
 OUTPUT_DIRECTORY.mkdir(parents = True, exist_ok = True)
 WAKE_LABEL = 0
 N1_LABEL = 1
+N2_LABEL = 2
+N3_LABEL = 3
 REM_LABEL = 4
 
 X_train, y_train, X_cv, y_cv, X_test, y_test, feature_columns, cv_meta = generate_training_splits()
 
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_cv_scaled = scaler.transform(X_cv)
+
+
+# weights = {0:1, 1:5, 2:2, 3:2, 4:3} # v3
+weights = {0:1, 1:4, 2:2, 3:2, 4:3} # v4
+
+
 count = np.bincount(y_train)
-target = int(0.60 * count[WAKE_LABEL])
-n1_count = count[1]
-rem_count = count[4]
+w_count = count[WAKE_LABEL]
+n1_count = count[N1_LABEL]
+n2_count = count[N2_LABEL]
+n3_count = count[N3_LABEL]
+rem_count = count[REM_LABEL]
+
+over_sampling_strategy = {
+    1: int(0.8 * n2_count),
+    4: int(0.9 * n2_count) 
+}
+
+under_sampling_strategy = {
+    0: int(0.1 * n2_count),
+}
 
 
-sampling_strategy = {}
-for label in [1]:
-    sampling_strategy[label] = target
+print(f"Wake: {w_count}")
+print(f"N1: {n1_count}")
+print(f"N2: {n2_count}")
+print(f"N3: {n3_count}")
+print(f"REM: {rem_count}")
+
+# undersampler = RandomUnderSampler(sampling_strategy = under_sampling_strategy, random_state = 42)
+# X_train_under, y_train_under = undersampler.fit_resample(X_train_scaled, y_train)
+
+smote = BorderlineSMOTE(
+    sampling_strategy = over_sampling_strategy,
+    k_neighbors = 3,
+    random_state = 42,
+)
+X_train_over, y_train_over = smote.fit_resample(X_train_scaled, y_train)
+
+
+
+# sampling_strategy = {}
+# for label in [1]:
+#     sampling_strategy[label] = target
 
 
 # smote = SMOTE(
@@ -50,13 +91,6 @@ for label in [1]:
 #     random_state = 42,
 #     k_neighbors = 3
 # )
-
-smote = BorderlineSMOTE(
-    sampling_strategy = sampling_strategy,
-    k_neighbors = 3,
-    random_state = 42,
-)
-X_train_resampled, y_train_resampled = smote.fit_resample(X_train, y_train)
 
 
 # rf_base = RandomForestClassifier(
@@ -95,26 +129,26 @@ X_train_resampled, y_train_resampled = smote.fit_resample(X_train, y_train)
 
 
 rf_parameters = {
-    "bootstrap": False,
-    "class_weight": "balanced_subsample",
+    "bootstrap": True,
+    "class_weight": weights,
     "criterion": "gini",
-    "max_depth": None,
+    "max_depth": 20,
     "max_features": "log2",
     "min_samples_leaf": 1,
-    "n_jobs": -1,
     "min_samples_split": 2,
-    "n_estimators": 500,
+    "n_estimators": 1000,
+    "n_jobs": -1,
     "random_state": 42
 }
 
 rf_model = RandomForestClassifier(**rf_parameters)
 
-rf_model.fit(X_train_resampled, y_train_resampled)
+rf_model.fit(X_train_over, y_train_over)
 
 dump(rf_model, OUTPUT_DIRECTORY / f"{MODEL_VERSION}.joblib")
 
-y_pred = rf_model.predict(X_cv)
-y_probabilities = rf_model.predict_proba(X_cv)
+y_pred = rf_model.predict(X_cv_scaled)
+y_probabilities = rf_model.predict_proba(X_cv_scaled)
 
 # Calculate overall metrics
 overall_metrics = {
@@ -178,7 +212,7 @@ plt.tight_layout()
 plt.savefig(OUTPUT_DIRECTORY / f"confusion_matrix_{MODEL_VERSION}.png")
 
 rf_parameters_payload = {
-    "Notes": "v7: v3 SMOTE applied to N1, but no SMOTE to REM. v6 Hyperparameters applied.",
+    "Notes": "v5: Wake undersampled to the same number of REM",
     "rf_parameters": rf_parameters,
 
 }
@@ -215,3 +249,5 @@ pred_df[probability_name] = y_probabilities
 pred_df = pd.concat([cv_meta, pred_df], axis=1)
 
 pred_df.to_csv(OUTPUT_DIRECTORY / f"predictions_{MODEL_VERSION}.csv", index=False)
+
+
