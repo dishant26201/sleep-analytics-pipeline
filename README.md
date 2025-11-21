@@ -1,5 +1,8 @@
 # Sleep Stage Classification from EEG Signals
 
+An end-to-end machine learning pipeline for classifying sleep stages (Wake, N1, N2, N3, REM) from overnight EEG recordings using the Sleep-EDF dataset.
+
+
 ## Abstract
 
 My interest in sleep research began while working at Corkum LABS at Dalhousie University, a group focused on developing non-invasive treatments for insomnia through e-health applications. While brainstorming project ideas to apply my machine learning (ML) skills, I came across an article from the University of Toronto about combining neuromodulation devices with ML to treat sleep disorders. This inspired me to build a sleep stage classification model.
