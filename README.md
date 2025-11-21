@@ -1,11 +1,11 @@
 # Sleep Stage Classification from EEG Signals
 
-An end-to-end machine learning pipeline for classifying sleep stages (Wake, N1, N2, N3, REM) from overnight EEG recordings using the Sleep-EDF dataset.
+An end-to-end machine learning (ML) pipeline for classifying sleep stages (Wake, N1, N2, N3, REM) from overnight EEG recordings using the Sleep-EDF dataset.
 
 
 ## Abstract
 
-My interest in sleep research began while working at Corkum LABS at Dalhousie University, a group focused on developing non-invasive treatments for insomnia through e-health applications. While brainstorming project ideas to apply my machine learning (ML) skills, I came across an article from the University of Toronto about combining neuromodulation devices with ML to treat sleep disorders. This inspired me to build a sleep stage classification model.
+My interest in sleep research began while working at Corkum LABS at Dalhousie University, a group focused on developing non-invasive treatments for insomnia through e-health applications. While brainstorming project ideas to apply my ML skills, I came across an article from the University of Toronto about combining neuromodulation devices with ML to treat sleep disorders. This inspired me to build a sleep stage classification model.
 
 Using the Sleep-EDF dataset, I built an end-to-end pipeline to classify 30-second EEG epochs into the five standard sleep stages (Wake, N1, N2, N3, REM). Data from the FPz–Cz and Pz–Oz channels was used for signal preprocessing and time and frequency-domain feature engineering.  Strategies to address class imbalance were applied, and a Random Forest classifier with a 60/20/20 train/cross-validation/test split was trained. The model achieved comparable performance with figures reported in prior literature on the test set. This demonstrates strong generalisation. As expected, N1 remained the most difficult stage to differentiate. This project strengthened my practical understanding of developing an ML pipeline and deepened my interest in applying ML to sleep and healthcare applications.
 
@@ -31,7 +31,7 @@ The splitting was performed at the subject level to prevent data leakage. This e
 
 Stage 1 used the subject-level inventories created in Stage 0 to load the correct PSG and hypnogram files for each split. For each entry in a particular split’s inventory, the corresponding PSG file and hypnogram file were loaded. From the PSG recordings, the FPz–Cz and Pz–Oz channels were extracted, after which several preprocessing steps were applied:
 
-Key preprocessing steps:
+#### Key preprocessing steps:
 - **Band-pass filter:** A band-pass filter of the range 0.5–30 Hz was used to isolate the main EEG frequency bands used in sleep staging.
 - **Epoch segmentation:** The continuous filtered signal was divided into consecutive, non-overlapping 30-second epochs.
 - **Label extraction and mapping:** Hypnogram annotations were read using MNE, converted to standardized sleep stage labels (W, N1, N2, N3, REM), and assigned to the corresponding epochs.
