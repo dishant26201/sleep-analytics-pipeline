@@ -7,13 +7,13 @@ import numpy as np
 from scipy.signal import welch
 from scipy.stats import kurtosis, skew
 
-EPS = np.finfo(float).eps  # Machine epsilon to prevent divide by zero or log(0) errors
+EPS = np.finfo(float).eps  # Machine epsilon to prevent divide by zero errors
 BANDS = {
-    "Delta": (0.5, 4),  # Dominant in N3
-    "Theta": (4, 8),  # Dominant in N1, REM
-    "Alpha": (8, 12),  # Dominant in Wake
-    "Sigma": (12, 15),  # Dominant in N2 (spindles)
-    "Beta": (15, 30),  # Dominant in Wake, REM
+    "Delta": (0.5, 4), # Dominant in N3
+    "Theta": (4, 8), # Dominant in N1, REM
+    "Alpha": (8, 12), # Dominant in Wake
+    "Sigma": (12, 15), # Dominant in N2 (spindles)
+    "Beta": (15, 30), # Dominant in Wake, REM
 }
 
 
@@ -167,6 +167,17 @@ def compute_freq_domain_features(epoch: np.ndarray, sfreq: float, channel: str):
         f"relative_alpha_{channel}": relative_powers["Alpha"],
         f"relative_sigma_{channel}": relative_powers["Sigma"],
         f"relative_beta_{channel}": relative_powers["Beta"],
+        f"log_alpha_theta_{channel}": np.log((relative_powers["Alpha"] + EPS) / (relative_powers["Theta"] + EPS)), # Distinguishing Wake from N1
+        f"log_sigma_theta_{channel}": np.log((relative_powers["Sigma"] + EPS) / (relative_powers["Theta"] + EPS)), # Distinguishing N1 from N2
+        f"log_beta_theta_{channel}": np.log((relative_powers["Beta"] + EPS) / (relative_powers["Theta"] + EPS)), # Distinguishing N1 from REM
+        f"log_beta_sigma_{channel}": np.log((relative_powers["Beta"] + EPS) / (relative_powers["Sigma"] + EPS)), # Distinguishing REM from N2
+        f"log_delta_theta_{channel}": np.log((relative_powers["Delta"] + EPS) / (relative_powers["Theta"] + EPS)) #
+
+
+
+
+
+
     }
 
 

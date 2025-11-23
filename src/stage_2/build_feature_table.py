@@ -11,7 +11,6 @@ from .extract_features import (
     load_npz_data,
 )
 
-
 # Build a row as a dictionary with features and associated values
 # Will include the label and a couple of metadata fields as
 def build_row(*feature_dicts: dict[str, object]):

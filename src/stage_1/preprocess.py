@@ -51,11 +51,11 @@ def load_channels(psg_path: str | Path):
 
         raw.pick([ch1, ch2])  # Pick only the selected channels and drop others
 
-        # Apply a band-pass filter to keep brainwave signals between 0.3 – 35 Hz
+        # Apply a band pass filter to keep brainwave signals between 0.3 – 35 Hz
         # Brainwave signals are made up of delta, theta, alpha. gamma, and beta waves
         # All these waves fall under the 0.3 - 35 Hz frequency range
         # Rest isn't needed
-        raw.filter(l_freq=0.3, h_freq=35.0, verbose="ERROR")
+        raw.filter(l_freq=0.5, h_freq=30.0, verbose="ERROR")
 
         return raw, [ch1, ch2]  # Return the filtered EEG data and the channel names
 
