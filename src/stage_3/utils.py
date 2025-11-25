@@ -5,7 +5,7 @@ import pandas as pd
 from sklearn.metrics import roc_curve
 
 # Temporal smoothing
-def apply_mode_filter(pred_df: pd.DataFrame, window: int):
+def apply_temporal_smoothing(pred_df: pd.DataFrame, window: int):
     half = window // 2
     smoothed_groups = []
 
@@ -26,7 +26,7 @@ def apply_mode_filter(pred_df: pd.DataFrame, window: int):
             vals, counts = np.unique(window_labels, return_counts=True)
             smoothed[i] = vals[np.argmax(counts)]
 
-        group["pred_label_mode_filter"] = smoothed
+        group["pred_label_smoothed"] = smoothed
         smoothed_groups.append(group)
 
     return pd.concat(smoothed_groups).sort_index()

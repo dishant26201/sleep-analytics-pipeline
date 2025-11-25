@@ -10,7 +10,7 @@ from imblearn.under_sampling import RandomUnderSampler
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import RandomizedSearchCV
 import numpy as np
-from .utils import apply_mode_filter
+from .utils import apply_temporal_smoothing
 from joblib import dump, load
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import (
@@ -156,26 +156,24 @@ pred_df[probability_name] = y_probabilities
 
 pred_df = pd.concat([cv_meta, pred_df], axis=1)
 
-pred_df = apply_mode_filter(pred_df, 5)
+pred_df = apply_temporal_smoothing(pred_df, 5)
 
-pred_df["pred_label_mode_filter_string"] = pred_df["pred_label_mode_filter"].map(LABEL_TO_NAME)
+pred_df["pred_label_smoothed_string"] = pred_df["pred_label_smoothed"].map(LABEL_TO_NAME)
 
-y_pred_mode_filter = pred_df["pred_label_mode_filter"].values
+y_pred_smoothed = pred_df["pred_label_smoothed"].values
 
 pred_df.to_csv(OUTPUT_DIRECTORY / f"predictions_{MODEL_VERSION}.csv", index=False)
 
 
 # Calculate overall metrics
 overall_metrics = {
-    "accuracy": float(accuracy_score(y_cv, y_pred_mode_filter)),  # Overall accuracy
-    "macro_f1": float(f1_score(y_cv, y_pred_mode_filter, average="macro")),  # Macro F1 average
-    "weighted_f1": float(f1_score(y_cv, y_pred_mode_filter, average="weighted")),  # Weighted F1 average
-    "cohen_kappa": float(cohen_kappa_score(y_cv, y_pred_mode_filter)),  # Cohen's kappa
-    "macro_auc": float(roc_auc_score(y_cv, y_probabilities, multi_class="ovr", average="macro")),
-    "weighted_auc": float(
-        roc_auc_score(y_cv, y_probabilities, multi_class="ovr", average="weighted")
-    ),
-    "log_loss": float(log_loss(y_cv, y_probabilities)),
+    "accuracy": accuracy_score(y_cv, y_pred_smoothed),  # Overall accuracy
+    "macro_f1": f1_score(y_cv, y_pred_smoothed, average="macro"),  # Macro F1 average
+    "weighted_f1": f1_score(y_cv, y_pred_smoothed, average="weighted"),  # Weighted F1 average
+    "cohen_kappa": cohen_kappa_score(y_cv, y_pred_smoothed),  # Cohen's kappa
+    "macro_auc": roc_auc_score(y_cv, y_probabilities, multi_class="ovr", average="macro"),
+    "weighted_auc": roc_auc_score(y_cv, y_probabilities, multi_class="ovr", average="weighted"),
+    "log_loss": log_loss(y_cv, y_probabilities),
 }
 
 importances = rf_model.feature_importances_
@@ -186,9 +184,7 @@ feature_importance = {
 
 feature_importance = sorted(feature_importance.items(), key=lambda x: x[1], reverse=True)
 
-per_class = classification_report(
-    y_cv, y_pred_mode_filter, labels=CLASSES, output_dict=True
-)
+per_class = classification_report(y_cv, y_pred_smoothed, labels=CLASSES, output_dict=True,  zero_division=0)
 
 per_class_auc = {}
 plt.figure(figsize=(10, 8))
@@ -212,7 +208,7 @@ plt.savefig(OUTPUT_DIRECTORY / f"roc_curves_{MODEL_VERSION}.png")
 
 
 fig, ax = plt.subplots(figsize=(10, 8))
-confusion = confusion_matrix(y_cv, y_pred_mode_filter, labels=CLASSES)  # Confusion matrix
+confusion = confusion_matrix(y_cv, y_pred_smoothed, labels=CLASSES)  # Confusion matrix
 disp = ConfusionMatrixDisplay(confusion_matrix=confusion, display_labels=CLASSES_STR)
 disp.plot(ax=ax, cmap="Blues")
 
