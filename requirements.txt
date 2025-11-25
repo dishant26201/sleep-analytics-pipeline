@@ -8,3 +8,5 @@ seaborn
 joblib
 imblearn
 xgboost
+streamlit
+scikit-learn
