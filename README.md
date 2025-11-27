@@ -126,10 +126,6 @@ Overall, the CV results show a steady progression. Large gains were observed in 
 
 ### Final Test Set Results (v0 – v4)
 
-<div style="display: inline-block; vertical-align: top;">
-  
-**Final Evaluation Metrics**
-
 | Metric            | Value  |
 | ----------------- | ------ |
 | **Accuracy**      | 0.8574 |
@@ -143,10 +139,7 @@ Overall, the CV results show a steady progression. Large gains were observed in 
 | **N3 F1**         | 0.7906 |
 | **REM F1**        | 0.5952 |
 
-</div>
-<div style="display: inline-block; vertical-align: top;">
-<img src="./test_confusion_matrix_test_metrics.png">
-</div>
+<img src="./test_confusion_matrix_test_metrics.png" width="500">
 
 The final v4 model generalises well on the held-out test set, with an accuracy of **0.8574**, a macro F1 of **0.6929**, and a Cohen’s kappa of **0.7255**. These results are slightly weaker than those from the cross-validation set but remain consistent with the performance of traditional tree-based models on the Sleep-EDF dataset. This suggests the model did not overfit, despite aggressive oversampling during training. The macro AUC of **0.9614** also shows that the model can clearly distinguish between the classes.
 
