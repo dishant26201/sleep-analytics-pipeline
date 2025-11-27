@@ -4,7 +4,7 @@ An end-to-end machine learning (ML) pipeline for classifying sleep stages (Wake,
 
 **Note:** I continue to improve and refine this project from time to time as I learn more about sleep analysis and EEG processing.
 
-**Try the model here:** [https://sleep-stage-classifier-eeg.streamlit.app/].
+**Try the model here:** https://sleep-stage-classifier-eeg.streamlit.app/.
 
 ## Abstract
 
