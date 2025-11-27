@@ -28,14 +28,7 @@ def generate_training_splits(feature_root: Path = Path("data/processed/features"
 
     # Define target and metadata columns
     target_column = "sleep_stage_int_value"
-    meta_columns = [
-        "subject_id",
-        "night",
-        "epoch_id",
-        "split",
-        "epoch_start_point",
-        "sfreq",
-    ]
+    meta_columns = ["subject_id", "night", "epoch_id", "split", "epoch_start_point", "sfreq"]
 
     # Extract feature columns from train (exclude meta and target)
     feature_columns = []

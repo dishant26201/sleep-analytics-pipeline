@@ -2,6 +2,10 @@
 
 An end-to-end machine learning (ML) pipeline for classifying sleep stages (Wake, N1, N2, N3, REM) from overnight EEG recordings using the Sleep-EDF dataset.
 
+**Note:** I continue to improve and refine this project from time to time as I learn more about sleep analysis and EEG processing.
+
+**Try the model here:** [https://sleep-stage-classifier-eeg.streamlit.app/].
+
 ## Abstract
 
 My interest in sleep research began while working at Corkum LABS at Dalhousie University, a group focused on developing non-invasive treatments for insomnia through e-health applications. While brainstorming project ideas to apply my ML skills, I came across an article from the University of Toronto about combining neuromodulation devices with ML to treat sleep disorders. This inspired me to build a sleep stage classification model.
@@ -72,7 +76,7 @@ After normalisation, the feature matrices (X*”split”) and the corresponding 
 
 A major focus in this stage was addressing the heavy class imbalance, particularly the underrepresentation of N1. Wake dominated most of the recording and was therefore extremely overrepresented. Oversampling strategies, such as Borderline-SMOTE for N1 and standard SMOTE for N2, N3, and REM, were applied to the underrepresented classes to address class imbalance. This was followed by training the Random Forest with class-balanced weights. Different configurations were tested over several iterations, including variations in oversampling strength, filtering, and hyperparameter tuning with RandomizedSearchCV.
 
-A simple temporal mode filter was then applied to predicted labels to smooth out isolated misclassifications. This filter looks at a small window of continuously predicted labels (for example, the 5 epochs surrounding the current one) and replaces the current prediction with the most common label (mode) in that window.
+Temporal smoothing was then applied to predicted labels to smooth out isolated misclassifications. This filter looks at a small window of continuously predicted labels (for example, the 5 epochs surrounding the current one) and replaces the current prediction with the most common label (mode) in that window.
 
 Model evaluation and improvements were guided by performance on the cross-validation split, using metrics such as accuracy, macro F1, Cohen’s κ, ROC-AUC, and per-class F1 scores. The confusion matrix and ROC curves helped identify challenges in distinguishing transitional stages such as N1. Once a stable configuration was reached, the model’s final performance was assessed on the test set using the same metrics. The results will be discussed in the next section.
 

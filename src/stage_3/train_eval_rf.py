@@ -28,7 +28,7 @@ from sklearn.metrics import (
 from .load_data import generate_training_splits
 
 
-MODEL_VERSION = "rf_cv_v3"
+MODEL_VERSION = "test_metrics"
 OUTPUT_DIRECTORY = Path("models") / MODEL_VERSION
 OUTPUT_DIRECTORY.mkdir(parents = True, exist_ok = True)
 WAKE_LABEL = 0
@@ -54,29 +54,41 @@ print(f"N2: {n2_count}")
 print(f"N3: {n3_count}")
 print(f"REM: {rem_count}")
 
-w_count = count[WAKE_LABEL]
-n1_count = 15 * n1_count
-n2_count = 2 * n2_count
-n3_count = 5 * n3_count
-rem_count = 7 * rem_count
+w_target = count[WAKE_LABEL]
+n1_target = int(15 * n1_count)
+n2_target = int(2 * n2_count)
+n3_target = int(5 * n3_count)
+rem_target = int(7 * rem_count)
 
+# under_sampling_strategy_w = {
+#     0: w_target
+# }
 
 over_sampling_strategy_n1 = {
-    1: n1_count
+    1: n1_target,
 }
 
 over_sampling_strategy_n2_n3_rem = {
-    2: n2_count,
-    3: n3_count,
-    4: rem_count
+    2: n2_target,
+    3: n3_target,
+    4: rem_target
+
 }
 
 print(f"\nCount after over/under sampling")
-print(f"Wake: {w_count}")
-print(f"N1: {n1_count}")
-print(f"N2: {n2_count}")
-print(f"N3: {n3_count}")
-print(f"REM: {rem_count}")
+# print(f"Wake: {w_target}")
+print(f"N1: {n1_target}")
+print(f"N2: {n2_target}")
+print(f"N3: {n3_target}")
+print(f"REM: {rem_target}")
+
+# undersampler = RandomUnderSampler(
+#     sampling_strategy=under_sampling_strategy_w,
+#     random_state=42,
+# )
+
+
+# X_train_under, y_train_under = undersampler.fit_resample(X_train, y_train)
 
 smote1 = BorderlineSMOTE(
     sampling_strategy = over_sampling_strategy_n1,
@@ -84,7 +96,6 @@ smote1 = BorderlineSMOTE(
     random_state = 42,
 )
 X_train_border_smote, y_train_border_smote = smote1.fit_resample(X_train, y_train)
-
 
 smote2 = SMOTE(
     sampling_strategy = over_sampling_strategy_n2_n3_rem,
@@ -97,52 +108,154 @@ X_train_over, y_train_over = smote2.fit_resample(X_train_border_smote, y_train_b
 # rf_parameters = {
 #     "bootstrap": True,
 #     "class_weight": "balanced",
-#     "criterion": "gini",
-#     "max_depth": None,
+#     "criterion": "log_loss",
+#     "max_depth": 20,
 #     "max_features": "sqrt",
 #     "min_samples_leaf": 1,
 #     "min_samples_split": 2,
-#     "n_estimators": 100,
+#     "n_estimators": 300,
 #     "n_jobs": -1,
 #     "random_state": 42
 # }
 
+
 rf_parameters = {
     "bootstrap": True,
     "criterion": "log_loss",
-    "n_estimators": 300,
-    "max_depth": 25,
+    "n_estimators": 500,
+    "max_depth": 20,
     "min_samples_split": 6,
     "min_samples_leaf": 3,
-    "max_features": 0.5, 
-    "class_weight": {
-        0: 1.0,
-        1: 3.0,
-        2: 1.0,
-        3: 1.4,
-        4: 2.0,
-    },
+    "max_features": 0.5,
+    "class_weight": None,
     "n_jobs": -1,
     "random_state": 42,
 }
 
-rf_model = RandomForestClassifier(**rf_parameters)
+# rf_model = RandomForestClassifier(**rf_parameters)
 
-rf_model.fit(X_train_over, y_train_over)
+# rf_model.fit(X_train_over, y_train_over)
 
-dump(rf_model, OUTPUT_DIRECTORY / f"{MODEL_VERSION}.joblib")
+# dump(rf_model, OUTPUT_DIRECTORY / f"{MODEL_VERSION}.joblib")
 
-# rf_model = load("models/rf_cv_v1/rf_cv_v1.joblib")
+rf_model = load("models/rf_cv_v4/rf_cv_v4.joblib")
 
 CLASSES = list(rf_model.classes_)  # 0 = W, 1 = N1, 2 = N2, 3 = N3, 4 = REM
 CLASSES_STR = [LABEL_TO_NAME.get(int(label), str(label)) for label in CLASSES]
 
-y_pred = rf_model.predict(X_cv)
-y_probabilities = rf_model.predict_proba(X_cv)
+# y_pred = rf_model.predict(X_cv)
+# y_probabilities = rf_model.predict_proba(X_cv)
+
+# pred_df = pd.DataFrame(
+#     {
+#         "true_label": y_cv.values,
+#         "pred_label": y_pred,
+#     }
+# )
+
+# pred_df["true_label_string"] = pred_df["true_label"].map(LABEL_TO_NAME)
+# pred_df["pred_label_string"] = pred_df["pred_label"].map(LABEL_TO_NAME)
+# pred_df["correct"] = (pred_df["true_label"] == pred_df["pred_label"]).astype(int)
+
+# probability_name = [f"p_{LABEL_TO_NAME.get(int(label), str(label))}" for label in CLASSES]
+# pred_df[probability_name] = y_probabilities
+
+# pred_df = pd.concat([cv_meta, pred_df], axis=1)
+
+# pred_df = apply_temporal_smoothing(pred_df, 5)
+
+# pred_df["pred_label_smoothed_string"] = pred_df["pred_label_smoothed"].map(LABEL_TO_NAME)
+
+# y_pred_smoothed = pred_df["pred_label_smoothed"].values
+
+# pred_df.to_csv(OUTPUT_DIRECTORY / f"predictions_{MODEL_VERSION}.csv", index=False)
+
+
+# # Calculate overall metrics
+# overall_metrics = {
+#     "accuracy": accuracy_score(y_cv, y_pred_smoothed),  # Overall accuracy
+#     "macro_f1": f1_score(y_cv, y_pred_smoothed, average="macro"),  # Macro F1 average
+#     "weighted_f1": f1_score(y_cv, y_pred_smoothed, average="weighted"),  # Weighted F1 average
+#     "cohen_kappa": cohen_kappa_score(y_cv, y_pred_smoothed),  # Cohen's kappa
+#     "macro_auc": roc_auc_score(y_cv, y_probabilities, multi_class="ovr", average="macro"),
+#     "weighted_auc": roc_auc_score(y_cv, y_probabilities, multi_class="ovr", average="weighted"),
+#     "log_loss": log_loss(y_cv, y_probabilities),
+# }
+
+# importances = rf_model.feature_importances_
+
+# feature_importance = {
+#     feature_columns[i]: float(importances[i]) for i in range(len(feature_columns))
+# }
+
+# feature_importance = sorted(feature_importance.items(), key=lambda x: x[1], reverse=True)
+
+# per_class = classification_report(y_cv, y_pred_smoothed, labels=CLASSES, output_dict=True,  zero_division=0)
+
+# per_class_auc = {}
+# plt.figure(figsize=(10, 8))
+# plt.xlabel("False Positive Rate (FPR)")
+# plt.ylabel("True Positive Rate (TPR)")
+# plt.title(f"One-vs-Rest ROC Curves: {MODEL_VERSION}")
+
+
+# for i, label in enumerate(CLASSES):
+#     y_binary = (y_cv == label).astype(int)
+#     y_probability_current_class = y_probabilities[:, i]
+#     fpr, tpr, roc_thresholds = roc_curve(y_binary, y_probability_current_class)
+#     class_auc = auc(fpr, tpr)
+#     per_class_auc[CLASSES_STR[i]] = class_auc
+#     plt.plot(fpr, tpr, label=f"ROC curve for class {CLASSES_STR[i]} (AUC = {class_auc:.2f})")
+
+# plt.legend()
+# plt.tight_layout()
+
+# plt.savefig(OUTPUT_DIRECTORY / f"roc_curves_{MODEL_VERSION}.png")
+
+
+# fig, ax = plt.subplots(figsize=(10, 8))
+# confusion = confusion_matrix(y_cv, y_pred_smoothed, labels=CLASSES)  # Confusion matrix
+# disp = ConfusionMatrixDisplay(confusion_matrix=confusion, display_labels=CLASSES_STR)
+# disp.plot(ax=ax, cmap="Blues")
+
+
+# ax.set_title(f"Confusion Matrix: {MODEL_VERSION}")
+# plt.tight_layout()
+
+# plt.savefig(OUTPUT_DIRECTORY / f"confusion_matrix_{MODEL_VERSION}.png")
+
+# rf_parameters_payload = {
+#     "Version": MODEL_VERSION,
+#     "Notes": "Different SMOTE Values (more reasonable)",
+#     "rf_parameters": rf_parameters,
+# }
+
+# metrics_payload = {
+#     "overall": overall_metrics,
+#     "per_class": per_class,
+#     "per_class_auc": per_class_auc,
+#     "feature_importance": feature_importance,
+# }
+
+# with open(OUTPUT_DIRECTORY / f"metrics_{MODEL_VERSION}.json", "w") as f:
+#     json.dump(metrics_payload, f, indent = 2, sort_keys = True)
+
+# with open(OUTPUT_DIRECTORY / f"params_{MODEL_VERSION}.json", "w") as f:
+#     json.dump(rf_parameters_payload, f, indent = 2, sort_keys = True)
+
+
+
+
+
+
+### TEST
+
+y_pred = rf_model.predict(X_test)
+y_probabilities = rf_model.predict_proba(X_test)
 
 pred_df = pd.DataFrame(
     {
-        "true_label": y_cv.values,
+        "true_label": y_test.values,
         "pred_label": y_pred,
     }
 )
@@ -154,7 +267,7 @@ pred_df["correct"] = (pred_df["true_label"] == pred_df["pred_label"]).astype(int
 probability_name = [f"p_{LABEL_TO_NAME.get(int(label), str(label))}" for label in CLASSES]
 pred_df[probability_name] = y_probabilities
 
-pred_df = pd.concat([cv_meta, pred_df], axis=1)
+pred_df = pd.concat([test_meta, pred_df], axis=1)
 
 pred_df = apply_temporal_smoothing(pred_df, 5)
 
@@ -162,18 +275,18 @@ pred_df["pred_label_smoothed_string"] = pred_df["pred_label_smoothed"].map(LABEL
 
 y_pred_smoothed = pred_df["pred_label_smoothed"].values
 
-pred_df.to_csv(OUTPUT_DIRECTORY / f"predictions_{MODEL_VERSION}.csv", index=False)
+pred_df.to_csv(OUTPUT_DIRECTORY / f"test_predictions_{MODEL_VERSION}.csv", index=False)
 
 
 # Calculate overall metrics
 overall_metrics = {
-    "accuracy": accuracy_score(y_cv, y_pred_smoothed),  # Overall accuracy
-    "macro_f1": f1_score(y_cv, y_pred_smoothed, average="macro"),  # Macro F1 average
-    "weighted_f1": f1_score(y_cv, y_pred_smoothed, average="weighted"),  # Weighted F1 average
-    "cohen_kappa": cohen_kappa_score(y_cv, y_pred_smoothed),  # Cohen's kappa
-    "macro_auc": roc_auc_score(y_cv, y_probabilities, multi_class="ovr", average="macro"),
-    "weighted_auc": roc_auc_score(y_cv, y_probabilities, multi_class="ovr", average="weighted"),
-    "log_loss": log_loss(y_cv, y_probabilities),
+    "accuracy": accuracy_score(y_test, y_pred_smoothed),  # Overall accuracy
+    "macro_f1": f1_score(y_test, y_pred_smoothed, average="macro"),  # Macro F1 average
+    "weighted_f1": f1_score(y_test, y_pred_smoothed, average="weighted"),  # Weighted F1 average
+    "cohen_kappa": cohen_kappa_score(y_test, y_pred_smoothed),  # Cohen's kappa
+    "macro_auc": roc_auc_score(y_test, y_probabilities, multi_class="ovr", average="macro"),
+    "weighted_auc": roc_auc_score(y_test, y_probabilities, multi_class="ovr", average="weighted"),
+    "log_loss": log_loss(y_test, y_probabilities),
 }
 
 importances = rf_model.feature_importances_
@@ -184,7 +297,7 @@ feature_importance = {
 
 feature_importance = sorted(feature_importance.items(), key=lambda x: x[1], reverse=True)
 
-per_class = classification_report(y_cv, y_pred_smoothed, labels=CLASSES, output_dict=True,  zero_division=0)
+per_class = classification_report(y_test, y_pred_smoothed, labels=CLASSES, output_dict=True,  zero_division=0)
 
 per_class_auc = {}
 plt.figure(figsize=(10, 8))
@@ -194,7 +307,7 @@ plt.title(f"One-vs-Rest ROC Curves: {MODEL_VERSION}")
 
 
 for i, label in enumerate(CLASSES):
-    y_binary = (y_cv == label).astype(int)
+    y_binary = (y_test == label).astype(int)
     y_probability_current_class = y_probabilities[:, i]
     fpr, tpr, roc_thresholds = roc_curve(y_binary, y_probability_current_class)
     class_auc = auc(fpr, tpr)
@@ -204,11 +317,11 @@ for i, label in enumerate(CLASSES):
 plt.legend()
 plt.tight_layout()
 
-plt.savefig(OUTPUT_DIRECTORY / f"roc_curves_{MODEL_VERSION}.png")
+plt.savefig(OUTPUT_DIRECTORY / f"test_roc_curves_{MODEL_VERSION}.png")
 
 
 fig, ax = plt.subplots(figsize=(10, 8))
-confusion = confusion_matrix(y_cv, y_pred_smoothed, labels=CLASSES)  # Confusion matrix
+confusion = confusion_matrix(y_test, y_pred_smoothed, labels=CLASSES)  # Confusion matrix
 disp = ConfusionMatrixDisplay(confusion_matrix=confusion, display_labels=CLASSES_STR)
 disp.plot(ax=ax, cmap="Blues")
 
@@ -216,11 +329,11 @@ disp.plot(ax=ax, cmap="Blues")
 ax.set_title(f"Confusion Matrix: {MODEL_VERSION}")
 plt.tight_layout()
 
-plt.savefig(OUTPUT_DIRECTORY / f"confusion_matrix_{MODEL_VERSION}.png")
+plt.savefig(OUTPUT_DIRECTORY / f"test_confusion_matrix_{MODEL_VERSION}.png")
 
 rf_parameters_payload = {
     "Version": MODEL_VERSION,
-    "Notes": "Hyperparamter tuning",
+    "Notes": "Test set",
     "rf_parameters": rf_parameters,
 }
 
@@ -231,8 +344,5 @@ metrics_payload = {
     "feature_importance": feature_importance,
 }
 
-with open(OUTPUT_DIRECTORY / f"metrics_{MODEL_VERSION}.json", "w") as f:
+with open(OUTPUT_DIRECTORY / f"test_metrics_{MODEL_VERSION}.json", "w") as f:
     json.dump(metrics_payload, f, indent = 2, sort_keys = True)
-
-with open(OUTPUT_DIRECTORY / f"params_{MODEL_VERSION}.json", "w") as f:
-    json.dump(rf_parameters_payload, f, indent = 2, sort_keys = True)

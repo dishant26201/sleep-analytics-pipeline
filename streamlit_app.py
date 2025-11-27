@@ -17,7 +17,7 @@ from sklearn.metrics import (
 
 from src.stage_3.utils import apply_temporal_smoothing
 
-PREDICTIONS_PATH = Path("test_predictions_rf_cv_v3.csv") # Path to test set predictions (CSV file)
+PREDICTIONS_PATH = Path("test_predictions_test_metrics.csv") # Path to test set predictions (CSV file)
 
 LABEL_TO_NAME = {0: "W", 1: "N1", 2: "N2", 3: "N3", 4: "REM"} # Sleep stage mapping
 
@@ -217,7 +217,7 @@ def main():
         - **Model performance** metrics for the full recording
 
         ##### Temporal smoothing:
-        Temporal smoothing helps clean up the raw sleep-stage predictions by enforcing short-term consistency.
+        Temporal smoothing helps stabilise the predictions by cleaning up the raw sleep-stage predictions.
         Instead of predicting each 30-second epoch in isolation, the model looks at a small window of neighbouring epochs
         and replaces the final label with the most common (mode) stage within that window.
 
