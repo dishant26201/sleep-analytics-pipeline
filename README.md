@@ -78,11 +78,83 @@ A major focus in this stage was addressing the heavy class imbalance, particular
 
 Temporal smoothing was then applied to predicted labels to smooth out isolated misclassifications. This filter looks at a small window of continuously predicted labels (for example, the 5 epochs surrounding the current one) and replaces the current prediction with the most common label (mode) in that window.
 
-Model evaluation and improvements were guided by performance on the cross-validation split, using metrics such as accuracy, macro F1, Cohen’s κ, ROC-AUC, and per-class F1 scores. The confusion matrix and ROC curves helped identify challenges in distinguishing transitional stages such as N1. Once a stable configuration was reached, the model’s final performance was assessed on the test set using the same metrics. The results will be discussed in the next section.
+Model evaluation and improvements were guided by performance on the cross-validation split, using metrics such as accuracy, macro F1, Cohen’s kappa, ROC-AUC, and per-class F1 scores. The confusion matrix and ROC curves helped identify challenges in distinguishing transitional stages such as N1. Once a stable configuration was reached, the model’s final performance was assessed on the test set using the same metrics. The results will be discussed in the next section.
 
 The final output of this stage was a trained Random Forest model, predictions, evaluation metrics, saved parameters, and feature-importance rankings, which helped interpret results.
 
 ## Results and Discussion
+
+This section summarises the performance across all iterations of the model, from the baseline version (v0) to the final hyperparameter-tuned model (v4). Each version introduced a unique modification, and both cross-validation (CV) and final test-set results are presented here.
+
+### Version Overview
+
+| Version                                 | Description                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **v0: Baseline**                        | A standard baseline Random Forest Classifier using mostly default parameters. Used as the foundation for all later experiments.<br>**Parameters:** `bootstrap=True`, `class_weight="balanced"`, `criterion="gini"`, `max_depth=None`, `max_features="sqrt"`, `min_samples_leaf=1`, `min_samples_split=2`, `n_estimators=100`, `n_jobs=-1`, `random_state=42`.                                                                     |
+| **v1: v0 + Oversampling**               | Multiple strategies to handle class imbalance (undersampling and oversampling) were tested. The best results came from aggressive oversampling: **Borderline-SMOTE for N1 (15×)**, and **SMOTE for N2 (2×), N3 (5×), REM (7×)**. All model parameters from v0 were kept the same.                                                                                                                                                 |
+| **v2: v1 + Temporal Smoothing (w = 5)** | Added temporal smoothing as a post-processing step. Smoothing replaces each predicted label with the most frequent (mode) label in a surrounding window. Window sizes 3–12 were tested, and 5 performed best. No new model was trained (v1 reused).                                                                                                                                                                               |
+| **v3: Hyperparameter Tuning pt. 1**     | A RandomizedSearchCV was attempted but was too slow, so manual hyperparameter tuning was performed instead.<br>**Parameters:** `bootstrap=True`, `class_weight={"0":1.0,"1":3.0,"2":1.0,"3":1.5,"4":2.0}`, `criterion="log_loss"`, `max_depth=25`, `max_features=0.5`, `min_samples_leaf=3`, `min_samples_split=6`, `n_estimators=300`, `n_jobs=-1`, `random_state=42`.<br>Oversampling (v1) and temporal smoothing (v2) applied. |
+| **v4: Hyperparameter Tuning pt. 2**     | Second and final round of hyperparameter tuning.<br>**Parameters:** `bootstrap=True`, `class_weight=null`, `criterion="log_loss"`, `max_depth=20`, `max_features=0.5`, `min_samples_leaf=3`, `min_samples_split=6`, `n_estimators=500`, `n_jobs=-1`, `random_state=42`.<br>Oversampling (v1) and temporal smoothing (v2) applied.                                                                                                 |
+
+### Cross-Validation (CV) Results (v0 – v4)
+
+| Version | Accuracy | Macro F1 | Macro AUC | Cohen’s kappa | Log Loss |
+| ------- | -------- | -------- | --------- | ------------- | -------- |
+| **v0**  | 0.8922   | 0.6886   | 0.9684    | 0.7710        | 0.3355   |
+| **v1**  | 0.8750   | 0.7122   | 0.9675    | 0.7483        | 0.3637   |
+| **v2**  | 0.8879   | 0.7313   | 0.9675    | 0.7715        | 0.3637   |
+| **v3**  | 0.8830   | 0.7326   | 0.9693    | 0.7649        | 0.3328   |
+| **v4**  | 0.8867   | 0.7369   | 0.9697    | 0.7707        | 0.3215   |
+
+| Version | Wake (W) | N1     | N2     | N3     | REM    |
+| ------- | -------- | ------ | ------ | ------ | ------ |
+| **v0**  | 0.9698   | 0.2166 | 0.8384 | 0.8226 | 0.5955 |
+| **v1**  | 0.9670   | 0.3924 | 0.8182 | 0.8329 | 0.5508 |
+| **v2**  | 0.9718   | 0.4077 | 0.8267 | 0.8173 | 0.6327 |
+| **v3**  | 0.9703   | 0.4151 | 0.8187 | 0.8333 | 0.6258 |
+| **v4**  | 0.9718   | 0.4259 | 0.8232 | 0.8327 | 0.6308 |
+
+Across versions v0 to v4, the results show that improvements come primarily from addressing class imbalance with SMOTE and stabilising predictions through temporal smoothing. Hyperparameter tuning contributed smaller refinements in later versions. The N1 and REM classes were the most challenging for the model to predict correctly. Improvements in their performance largely dictated gains in overall metrics.
+
+- **v0 to v1:** Macro F1 increased noticeably from 0.69 to 0.71, driven almost entirely by the large improvement in N1 (F1 increasing from 0.22 to 0.39). The aggressive oversampling strategy allowed the model to better represent the minority classes, particularly N1, which is underrepresented and less distinct in its EEG patterns.
+
+- **v2:** Macro F1 further improved from 0.71 to 0.73 because of temporal smoothing. This benefited transitional states such as N1 and the transition from REM to N1. This can be seen in the increase of REM F1 from 0.55 to 0.63, and the continued improvement in N1 from 0.39 to 0.41. Wake, N2, and N3 remained relatively stable across versions since they have more distinct EEG patterns.
+
+- **v3 / v4:** These show small refinements rather than major shifts. Manual hyperparameter tuning slightly increased macro F1 up to 0.7369 and macro AUC up to 0.9697 in v4. Per-class scores followed the same pattern, as N1 continued to increase steadily, reaching 0.43 in v4. The other stages remained strong, with only minor fluctuations. These gradual improvements suggest that once imbalance and prediction consistency were addressed, the Random Forest’s performance reached a ceiling, given the constraints of using only EEG data (without EOG and EMG) and handcrafted features.
+
+Overall, the CV results show a steady progression. Large gains were observed in the early versions from correcting imbalance and stabilising predictions, followed by smaller, meaningful refinements through tuning. Version v4 was the strongest configuration and was used on the test set.
+
+### Final Test Set Results (v0 – v4)
+
+<div style="display: inline-block; vertical-align: top;">
+  
+**Final Evaluation Metrics**
+
+| Metric            | Value  |
+| ----------------- | ------ |
+| **Accuracy**      | 0.8574 |
+| **Macro F1**      | 0.6929 |
+| **Macro AUC**     | 0.9614 |
+| **Cohen’s kappa** | 0.7255 |
+| **Log Loss**      | 0.4002 |
+| **Wake (W) F1**   | 0.9518 |
+| **N1 F1**         | 0.3084 |
+| **N2 F1**         | 0.8186 |
+| **N3 F1**         | 0.7906 |
+| **REM F1**        | 0.5952 |
+
+</div>
+<div style="display: inline-block; vertical-align: top;">
+<img src="./test_confusion_matrix_test_metrics.png">
+</div>
+
+The final v4 model generalises well on the held-out test set, with an accuracy of **0.8574**, a macro F1 of **0.6929**, and a Cohen’s kappa of **0.7255**. These results are slightly weaker than those from the cross-validation set but remain consistent with the performance of traditional tree-based models on the Sleep-EDF dataset. This suggests the model did not overfit, despite aggressive oversampling during training. The macro AUC of **0.9614** also shows that the model can clearly distinguish between the classes.
+
+The confusion matrix shows that Wake, N2, and N3 are clearly separated, as seen by strong diagonal patterns. Most errors occur in the lighter, transitional stages. N1 is often misclassified as Wake, N2, or REM, which is expected given its weaker, less distinctive EEG patterns. REM also shows some confusion with Wake and N1 since its EEG is low-amplitude and mixed-frequency, similar to those stages. There is also some confusion with N2, as it falls between light and deep sleep, so borderline epochs may share similar features. N3 is the most distinct and is rarely misclassified.
+
+The per-class results matched the trends seen during development. Wake had a strong F1 of 0.9518, and both N2 and N3 also performed well, which fits their more distinct features. REM had a moderate F1 of 0.5952, as it overlaps with Wake and N1 during transitions. As expected, N1 was the hardest stage to classify, with an F1 of 0.3084. This difficulty aligns with the known properties of N1, since it is a transitional stage and is often confused with Wake and REM when using only EEG data. This is also consistent with prior literature, where N1 F1 scores for traditional ML approaches on Sleep-EDF are usually between 0.20 and 0.35. For example, Fraiwan et al. (2012) reported N1 F1 around 0.28 using SVM-based features, Lajnef et al. (2015) reported around 0.30 with probabilistic models, and Aboalayon et al. (2016) found similar challenges in detecting N1 with EEG-only inputs.
+
+Overall, the test-set results support the trends seen in cross-validation. The majority of performance gains come from handling class imbalance and stabilising predictions. However, it is clear that the Random Forest model hits a ceiling, as it struggles to capture the subtle patterns needed to separate stages like N1 and REM.
 
 ## Limitations
 
