@@ -164,5 +164,3 @@ There are several ways in which this project can be expanded. A natural next ste
 On the modeling side, experimenting with deep learning models could capture more meaningful patterns in raw EEG data that handcrafted features may miss.
 
 Finally, I plan to refine parts of the pipeline as my understanding of EEG processing and sleep physiology grows.
-
-## References
