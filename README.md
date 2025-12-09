@@ -14,7 +14,7 @@ Using the Sleep-EDF dataset, I built an end-to-end pipeline to classify 30-secon
 
 ## Dataset
 
-For this project, I used the Sleep-EDF Database Expanded from PhysioNet. It contains 197 whole-night polysomnographic (PSG) recordings, which include EEG, EOG, and EMG signals. All recordings were manually scored by expert sleep technicians according to the Rechtschaffen & Kales standard. Each EEG recording contains signals from two channels: FPz–Cz and Pz–Oz. These are standard and widely used in sleep staging research. The dataset also provides hypnogram files for each PSG recording, containing sleep stage labels (Wake (W), N1, N2, N3, REM) for every 30-second segment of the signal, known as an epoch.
+For this project, I used the Sleep-EDF Database Expanded from PhysioNet [1]. It contains 197 whole-night polysomnographic (PSG) recordings, which include EEG, EOG, and EMG signals. All recordings were manually scored by expert sleep technicians according to the Rechtschaffen & Kales standard [1]. Each EEG recording contains signals from two channels: FPz–Cz and Pz–Oz. These are standard and widely used in sleep staging research [1]. The dataset also provides hypnogram files for each PSG recording, containing sleep stage labels (Wake (W), N1, N2, N3, REM) for every 30-second segment of the signal, known as an epoch [1].
 
 ## Methodology
 
@@ -32,9 +32,9 @@ Stage 1 used the subject-level inventories created in Stage 0 to load the correc
 
 #### Key preprocessing steps:
 
-- **Band-pass filter:** A band-pass filter of the range 0.5–30 Hz was used to isolate the main EEG frequency bands used in sleep staging.
+- **Band-pass filter:** A band-pass filter of the range 0.5–30 Hz was used to isolate the main EEG frequency bands used in sleep staging [2].
 - **Epoch segmentation:** The continuous filtered signal was divided into consecutive, non-overlapping 30-second epochs.
-- **Label extraction and mapping:** Hypnogram annotations were read using MNE, converted to standardized sleep stage labels (W, N1, N2, N3, REM), and assigned to the corresponding epochs.
+- **Label extraction and mapping:** Hypnogram annotations were read using MNE [3], converted to standardized sleep stage labels (W, N1, N2, N3, REM), and assigned to the corresponding epochs.
 - **Epoch filtering:** Epochs without valid labels were removed to maintain dataset quality.
 - **Data packaging:** For each subject–night recording, the final set of valid epochs, their labels, channel names, sampling rate, and epoch start times were saved as a compressed .npz file. Additionally, metadata for each epoch was stored in a split-specific CSV file for reference.
 
@@ -42,7 +42,7 @@ The output of this stage was a clean set of .npz files containing labeled 30-sec
 
 ### Stage 2: Feature Engineering and Feature Table Construction
 
-In Stage 2, the preprocessed EEG epochs from Stage 1 are turned into a structured set of features. For each split, every recording (.npz file) was loaded, and a set of time-domain and frequency-domain features was calculated for both EEG channels. These features are common in traditional sleep staging models because they reflect the physiological differences between sleep stages.
+In Stage 2, the preprocessed EEG epochs from Stage 1 are turned into a structured set of features. For each split, every recording (.npz file) was loaded, and a set of time-domain and frequency-domain features was calculated for both EEG channels. These features are common in traditional sleep staging models because they reflect the physiological differences between sleep stages [9].
 
 #### Time-domain features
 
@@ -56,7 +56,7 @@ These describe the shape and statistical properties of the raw EEG waveform:
 
 #### Frequency-domain features
 
-Using Welch’s method, the power spectral density (PSD) was calculated between the range of 0.5 and 30 Hz. This was followed by the extraction of absolute and relative power in standard EEG bands:
+Using Welch’s method [4], the power spectral density (PSD) was calculated between the range of 0.5 and 30 Hz. This was followed by the extraction of absolute and relative power in standard EEG bands [8]:
 
 - **Delta (0.5–4 Hz):** High delta power indicates deep sleep, which is dominant in N3.
 - **Theta (4–8 Hz):** Linked to drowsiness and light sleep, hence stronger in N1 and REM.
@@ -74,11 +74,11 @@ Stage 3 took the feature tables (CSV files) from stage 2 and prepared them for m
 
 After normalisation, the feature matrices (X*”split”) and the corresponding labels (y*”split”) were extracted for each split. A Random Forest classifier was chosen for its robustness on tabular feature sets, its ability to identify nonlinear patterns without requiring extensive tuning, and its quick training time.
 
-A major focus in this stage was addressing the heavy class imbalance, particularly the underrepresentation of N1. Wake dominated most of the recording and was therefore extremely overrepresented. Oversampling strategies, such as Borderline-SMOTE for N1 and standard SMOTE for N2, N3, and REM, were applied to the underrepresented classes to address class imbalance. This was followed by training the Random Forest with class-balanced weights. Different configurations were tested over several iterations, including variations in oversampling strength, filtering, and hyperparameter tuning with RandomizedSearchCV.
+A major focus in this stage was addressing the heavy class imbalance, particularly the underrepresentation of N1 [7]. Wake dominated most of the recording and was therefore extremely overrepresented. Oversampling strategies, such as Borderline-SMOTE for N1 and standard SMOTE for N2, N3, and REM, were applied to the underrepresented classes to address class imbalance. This was followed by training the Random Forest with class-balanced weights. Different configurations were tested over several iterations, including variations in oversampling strength, filtering, and hyperparameter tuning with RandomizedSearchCV.
 
 Temporal smoothing was then applied to predicted labels to smooth out isolated misclassifications. This filter looks at a small window of continuously predicted labels (for example, the 5 epochs surrounding the current one) and replaces the current prediction with the most common label (mode) in that window.
 
-Model evaluation and improvements were guided by performance on the cross-validation split, using metrics such as accuracy, macro F1, Cohen’s kappa, ROC-AUC, and per-class F1 scores. The confusion matrix and ROC curves helped identify challenges in distinguishing transitional stages such as N1. Once a stable configuration was reached, the model’s final performance was assessed on the test set using the same metrics. The results will be discussed in the next section.
+Model evaluation and improvements were guided by performance on the cross-validation split, using metrics such as accuracy, macro F1 [14], Cohen’s kappa [13], ROC-AUC [12], and per-class F1 scores. The confusion matrix [15] and ROC curves helped identify challenges in distinguishing transitional stages such as N1. Once a stable configuration was reached, the model’s final performance was assessed on the test set using the same metrics. The results will be discussed in the next section.
 
 The final output of this stage was a trained Random Forest model, predictions, evaluation metrics, saved parameters, and feature-importance rankings, which helped interpret results.
 
@@ -145,7 +145,7 @@ The final v4 model generalises well on the held-out test set, with an accuracy o
 
 The confusion matrix shows that Wake, N2, and N3 are clearly separated, as seen by strong diagonal patterns. Most errors occur in the lighter, transitional stages. N1 is often misclassified as Wake, N2, or REM, which is expected given its weaker, less distinctive EEG patterns. REM also shows some confusion with Wake and N1 since its EEG is low-amplitude and mixed-frequency, similar to those stages. There is also some confusion with N2, as it falls between light and deep sleep, so borderline epochs may share similar features. N3 is the most distinct and is rarely misclassified.
 
-The per-class results matched the trends seen during development. Wake had a strong F1 of 0.9518, and both N2 and N3 also performed well, which fits their more distinct features. REM had a moderate F1 of 0.5952, as it overlaps with Wake and N1 during transitions. As expected, N1 was the hardest stage to classify, with an F1 of 0.3084. This difficulty aligns with the known properties of N1, since it is a transitional stage and is often confused with Wake and REM when using only EEG data. This is also consistent with prior literature, where N1 F1 scores for traditional ML approaches on Sleep-EDF are usually between 0.20 and 0.35. For example, Fraiwan et al. (2012) reported N1 F1 around 0.28 using SVM-based features, Lajnef et al. (2015) reported around 0.30 with probabilistic models, and Aboalayon et al. (2016) found similar challenges in detecting N1 with EEG-only inputs.
+The per-class results matched the trends seen during development. Wake had a strong F1 of 0.9518, and both N2 and N3 also performed well, which fits their more distinct features. REM had a moderate F1 of 0.5952, as it overlaps with Wake and N1 during transitions. As expected, N1 was the hardest stage to classify [16], with an F1 of 0.3084. This difficulty aligns with the known properties of N1, since it is a transitional stage and is often confused with Wake and REM when using only EEG data. This is also consistent with prior literature, where N1 F1 scores for traditional ML approaches on Sleep-EDF are usually between 0.20 and 0.35. For example, Fraiwan et al. (2012) reported N1 F1 around 0.28 using SVM-based features, Lajnef et al. (2015) reported around 0.30 with probabilistic models, and Aboalayon et al. (2016) found similar challenges in detecting N1 with EEG-only inputs.
 
 Overall, the test-set results support the trends seen in cross-validation. The majority of performance gains come from handling class imbalance and stabilising predictions. However, it is clear that the Random Forest model hits a ceiling, as it struggles to capture the subtle patterns needed to separate stages like N1 and REM.
 
@@ -169,9 +169,9 @@ Finally, I plan to refine parts of the pipeline as my understanding of EEG proce
 
 [1]  PhysioNet, “Sleep-EDF Database Expanded (Sleep Cassette) v1.0.0.” https://physionet.org/content/sleep-edfx/1.0.0/ (accessed Feb. 8, 2025).
 
-[2]  MNE Developers, “MNE-Python: Software for processing MEG and EEG data.” https://mne.tools/stable/index.html (accessed Feb. 8, 2025).
+[2]  American Academy of Sleep Medicine, “The AASM Manual for the Scoring of Sleep and Associated Events.” J. Clin. Sleep Med. https://jcsm.aasm.org/doi/10.5664/jcsm.11082 (accessed Feb. 8, 2025).
 
-[3]  American Academy of Sleep Medicine, “The AASM Manual for the Scoring of Sleep and Associated Events.” J. Clin. Sleep Med. https://jcsm.aasm.org/doi/10.5664/jcsm.11082 (accessed Feb. 8, 2025).
+[3]  MNE Developers, “MNE-Python: Software for processing MEG and EEG data.” https://mne.tools/stable/index.html (accessed Feb. 8, 2025).
 
 [4]  R. Vallat, “Welch’s method and bandpower computation.” https://raphaelvallat.com/bandpower.html (accessed Feb. 8, 2025).
 
