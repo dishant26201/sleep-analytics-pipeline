@@ -224,8 +224,8 @@ def main():
         This makes the timeline smoother, removes unrealistic one-off spikes (e.g., N2 to N3 to N2 within 3 epochs), and
         produces a hypnogram which is more aligned with how human scorers read sleep.
 
-        **A window size of 5** is used for test-set evaluation, as it yielded the strongest overall performance during cross-validation. 
-        However, the window size can be modified using the slider in the sidebar to visualize the impact of different window sizes. 
+        **A window size of 5** is used for test-set evaluation, because it yielded the strongest overall performance during cross-validation. 
+        However, the window size can be adjusted using the slider in the sidebar to visualize the impact of different window sizes. 
         Full results and methodology are documented on this project's [GitHub](https://github.com/dishant26201/sleep-analytics-pipeline.git)
         """
     )
