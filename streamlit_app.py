@@ -191,13 +191,13 @@ def main():
     # Brief description about the tool
     st.markdown(
         """
-        This app demonstrates an experimental **sleep stage classification model** trained on EEG data
+        This app is an experimental **sleep stage classification model** trained on EEG data
         (Fpz-Cz and Pz-Oz channels) from the [Sleep-EDF Database Expanded](https://www.physionet.org/content/sleep-edfx/1.0.0/).
 
         - A Random Forest classifier was trained on hand-crafted EEG features.
-        Because the full model is large, its predictions (labels + probabilities)
+        Because the actual model file is very large in size, its predictions (labels + probabilities)
         were pre-computed on the test set and stored in a CSV file, which this app
-        loads for fast, lightweight visualization.
+        loads for fast and lightweight visualization.
         - Predictions may be inaccurate.
         - True labels are derived from expert-scored hypnograms in the Sleep-EDF database.
         """
@@ -222,9 +222,10 @@ def main():
         and replaces the final label with the most common (mode) stage within that window.
 
         This makes the timeline smoother, removes unrealistic one-off spikes (e.g., N2 to N3 to N2 within 3 epochs), and
-        produces a more physiologically plausible hypnogram, which is more aligned with how human scorers read sleep.
+        produces a hypnogram which is more aligned with how human scorers read sleep.
 
-        **A window size of 5** is used for test-set evaluation, as it yielded the strongest overall performance during cross-validation.
+        **A window size of 5** is used for test-set evaluation, as it yielded the strongest overall performance during cross-validation. 
+        However, the window size can be modified using the slider in the sidebar to visualize the impact of different window sizes. 
         Full results and methodology are documented on this project's [GitHub](https://github.com/dishant26201/sleep-analytics-pipeline.git)
         """
     )
