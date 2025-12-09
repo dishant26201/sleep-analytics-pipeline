@@ -167,4 +167,34 @@ Finally, I plan to refine parts of the pipeline as my understanding of EEG proce
 
 ## References
 
-Coming soon. Being worked on as you read this!
+[1]  PhysioNet, “Sleep-EDF Database Expanded (Sleep Cassette) v1.0.0.” https://physionet.org/content/sleep-edfx/1.0.0/ (accessed Feb. 8, 2025).
+
+[2]  MNE Developers, “MNE-Python: Software for processing MEG and EEG data.” https://mne.tools/stable/index.html (accessed Feb. 8, 2025).
+
+[3]  American Academy of Sleep Medicine, “The AASM Manual for the Scoring of Sleep and Associated Events.” J. Clin. Sleep Med. https://jcsm.aasm.org/doi/10.5664/jcsm.11082 (accessed Feb. 8, 2025).
+
+[4]  R. Vallat, “Welch’s method and bandpower computation.” https://raphaelvallat.com/bandpower.html (accessed Feb. 8, 2025).
+
+[5]  A. S. Hussein, M. M. Mustafa, and M. H. M. Noor, “A machine learning model for automatic sleep stage classification based on EEG features,” Mathematical Modelling of Engineering Problems, vol. 11, no. 12, pp. 3293–3302, 2024. https://www.iieta.org/journals/mmep/paper/10.18280/mmep.111204
+
+[6]  A. L. Paniagua et al., “Machine Learning Techniques for Automatic Sleep Stage Classification using EEG Data: A Systematic Review,” Int. J. Environ. Res. Public Health, vol. 19, no. 5, 2845, 2022. https://www.mdpi.com/1660-4601/19/5/2845
+
+[7]  M. M. Al-Smadi, M. R. Alsmadi, and M. Alazzam, “Hybrid Deep Learning for Sleep Stage Classification Using EEG Signals,” Proc. IEEE, 2024. https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=11129107
+
+[8]  E. K. Kurtoğlu, “EEG Frequency Bands and Functional Significance,” StatPearls Publishing, 2023. https://www.ncbi.nlm.nih.gov/books/NBK526132/ 
+
+[9]  S. A. Al-Dulaimi et al., “EEG-based sleep stage classification using machine learning: A comprehensive comparison of features and classifiers,” BMC Med. Inform. Decis. Mak., vol. 24, no. 52, 2024. https://link.springer.com/content/pdf/10.1186/s12911-024-02522-2.pdf
+
+[10] H. Han, W.-Y. Wang, and B.-H. Mao, “Borderline-SMOTE: A New Over-Sampling Method in Imbalanced Data,” in Proc. Int. Conf. Intelligent Computing, 2005. https://arxiv.org/abs/1106.1813
+
+[11] B. Ozen, “Multi-class classification on imbalanced data using Random Forest in Spark,” Medium, 2019. https://burakozen.medium.com/multi-class-classification-on-imbalanced-data-using-random-forest-algorithm-in-spark-5b3d0af9b93f
+
+[12] Scikit-Learn Developers, “ROC AUC Score.” https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_auc_score.html (accessed Feb. 8, 2025).
+
+[13] Scikit-Learn Developers, “Cohen’s Kappa Score.” https://scikit-learn.org/stable/modules/generated/sklearn.metrics.cohen_kappa_score.html (accessed Feb. 8, 2025).
+
+[14] Scikit-Learn Developers, “F1 Score.” https://scikit-learn.org/stable/modules/generated/sklearn.metrics.f1_score.html (accessed Feb. 8, 2025).
+
+[15] Scikit-Learn Developers, “Confusion Matrix.” https://scikit-learn.org/stable/modules/generated/sklearn.metrics.confusion_matrix.html (accessed Feb. 8, 2025).
+
+[16] P. K. Sadasivam et al., “Sleep stage classification using efficient learning techniques and EEG signals,” Frontiers in Sleep, vol. 2, 2023. https://pmc.ncbi.nlm.nih.gov/articles/PMC10584883/
